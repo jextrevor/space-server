@@ -120,6 +120,7 @@ class AntennaModule:
     def action(self):
         self.scan()
 def allstationconnect(key):
+    print "Station "+str(key)+" connected"
     mission.join(key)
     emit('lobbystations',mission.GetStations(), namespace="/lobby")
     with open("static/js/station"+str(key)+".js","r") as myfile:
@@ -127,6 +128,7 @@ def allstationconnect(key):
     with open("static/html/station"+str(key)+".html") as myfile:
         emit('html',myfile.read())
 def allstationdisconnect(key):
+    print "Station "+str(key)+" disconnected"
     if mission.status == 1.5:
         mission.StopCountdown()
     mission.GetStations()[key]["taken"] = False
