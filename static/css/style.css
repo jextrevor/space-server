@@ -1,0 +1,97 @@
+.page-header h1{
+font-family:"Lucida Console",Monaco, monospace;
+font-style: italic;
+font-size:400%;
+}
+.page-header{
+text-align:center;
+}
+html *{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:default;
+}
+@-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+ 
+ .nav-tabs>li>a {
+   background: rgba(74,74,74,1);
+   background: -moz-linear-gradient(top, rgba(74,74,74,1) 0%, rgba(71,71,71,1) 47%, rgba(46,46,46,1) 100%);
+   background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(74,74,74,1)), color-stop(47%, rgba(71,71,71,1)), color-stop(100%, rgba(46,46,46,1)));
+   background: -webkit-linear-gradient(top, rgba(74,74,74,1) 0%, rgba(71,71,71,1) 47%, rgba(46,46,46,1) 100%);
+   background: -o-linear-gradient(top, rgba(74,74,74,1) 0%, rgba(71,71,71,1) 47%, rgba(46,46,46,1) 100%);
+   background: -ms-linear-gradient(top, rgba(74,74,74,1) 0%, rgba(71,71,71,1) 47%, rgba(46,46,46,1) 100%);
+   background: linear-gradient(to bottom, rgba(74,74,74,1) 0%, rgba(71,71,71,1) 47%, rgba(46,46,46,1) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4a4a4a', endColorstr='#2e2e2e', GradientType=0 );
+ }
+ 
+
+ .nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+   background: rgba(73,155,234,1);
+   background: -moz-linear-gradient(top, rgba(73,155,234,1) 0%, rgba(32,124,229,1) 100%);
+   background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(73,155,234,1)), color-stop(100%, rgba(32,124,229,1)));
+   background: -webkit-linear-gradient(top, rgba(73,155,234,1) 0%, rgba(32,124,229,1) 100%);
+   background: -o-linear-gradient(top, rgba(73,155,234,1) 0%, rgba(32,124,229,1) 100%);
+   background: -ms-linear-gradient(top, rgba(73,155,234,1) 0%, rgba(32,124,229,1) 100%);
+   background: linear-gradient(to bottom, rgba(73,155,234,1) 0%, rgba(32,124,229,1) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#499bea', endColorstr='#207ce5', GradientType=0 );
+ }
+ 
+
+ .nav-tabs>li>a:hover {
+   background: rgba(87,87,87,1);
+   background: -moz-linear-gradient(top, rgba(87,87,87,1) 0%, rgba(84,84,84,1) 47%, rgba(54,54,54,1) 100%);
+   background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(87,87,87,1)), color-stop(47%, rgba(84,84,84,1)), color-stop(100%, rgba(54,54,54,1)));
+   background: -webkit-linear-gradient(top, rgba(87,87,87,1) 0%, rgba(84,84,84,1) 47%, rgba(54,54,54,1) 100%);
+   background: -o-linear-gradient(top, rgba(87,87,87,1) 0%, rgba(84,84,84,1) 47%, rgba(54,54,54,1) 100%);
+   background: -ms-linear-gradient(top, rgba(87,87,87,1) 0%, rgba(84,84,84,1) 47%, rgba(54,54,54,1) 100%);
+   background: linear-gradient(to bottom, rgba(87,87,87,1) 0%, rgba(84,84,84,1) 47%, rgba(54,54,54,1) 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#575757', endColorstr='#363636', GradientType=0 );
+}
+.fadein {
+ opacity:0; 
+ -webkit-animation:fadeIn ease-in 1;
+ -moz-animation:fadeIn ease-in 1;
+ animation:fadeIn ease-in 1;
+ 
+ -webkit-animation-fill-mode:forwards;
+ -moz-animation-fill-mode:forwards;
+ animation-fill-mode:forwards;
+ 
+ -webkit-animation-duration:3s;
+ -moz-animation-duration:3s;
+ animation-duration:3s;
+}
+
+body{
+-webkit-transition: opacity 0.5s ease-in;
+-o-transition: opacity 0.5s ease-in;
+-moz-transition: opacty 0.5s ease-in;
+transition: opacity 0.5s ease-in;
+}
+#errordisconnect{
+
+}
+#briefing{
+	text-align:justify;
+}
+#briefingcontent{
+    text-align:center;
+    padding-top:100px;
+}
+#controls{
+position:relative;
+top:-20px;
+width:100%;
+padding-top:0px;
+margin-top:0px;
+}
+#briefing h1{
+font-family:"Lucida Console",Monaco, monospace;
+font-size:72pt;
+}
