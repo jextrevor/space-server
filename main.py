@@ -82,13 +82,16 @@ class Vessel:
         self.alertmodule = AlertModule(self,0,100,100)
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
 class AlertModule:
-    def __init__(self, parentmission, alertstatus, health, power):
+    def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage):
         self.parentmission = parentmission
         self.alertstatus = alertstatus
         self.health = health
         self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
     def changestatus(self,alertstatus):
-        if self.health > 5 and self.power > 5:
+        if self.health > mindamage and self.power > minpower:
             self.alertstatus = alertstatus
             if self.alertstatus == 0:
                 parentmission.SaveGame()
@@ -97,18 +100,25 @@ class AlertModule:
             return True
         else:
             return False
+    def action(self):
+        pass
 class AntennaModule:
-    def __init__(self, parentmission, antennarange, health, power):
+    def __init__(self, parentmission, antennarange, health, power, mindamage, minpower, breakdamage):
         self.parentmission = parentmission
         self.antennarange = antennarange
         self.health = health
         self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
         self.scanlist = []
     def scan(self):
-        del scanlist[:]
-        for obj in parentmission.map.dictionary:
+        del self.scanlist[:]
+        for obj in self.parentmission.map.dictionary:
             if obj.type == "signal":
-                pass
+                self.scanlist.append(obj)
+    def action(self):
+        self.scan()
 def allstationconnect(key):
     mission.join(key)
     emit('lobbystations',mission.GetStations(), namespace="/lobby")
