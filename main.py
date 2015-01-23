@@ -20,6 +20,7 @@ class Mission:
         self.name = dictionary['name']
         self.map = dictionary['map']
         self.vessel = dictionary['id']
+        self.map.dictionary[vessel].parentmission = self
         self.objective = dictionary['obj']
         self.socket = None
         self.timer = None
@@ -68,6 +69,7 @@ class Mission:
         self.name = dictionary['name']
         self.map = dictionary['map']
         self.vessel = dictionary['id']
+        self.map.dictionary[vessel].parentmission = self
         self.objective = dictionary['obj']
         self.emittoallstations("status","1.5")
         self.Start()
@@ -82,6 +84,9 @@ class Map:
 class Vessel:
     def __init__(self, specs):
         self.parentmission = None
+        self.x = specs['x']
+        self.y = specs['y']
+        self.z = specs['z']
         self.alertmodule = AlertModule(self.parentmission,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
         self.antennamodule = AntennaModule(self.parentmission,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
@@ -101,8 +106,8 @@ class AlertModule:
             self.alertstatus = alertstatus
             if self.alertstatus == 0:
                 parentmission.SaveGame()
-            emit('alert',alertstatus,namespace="/station1")
-            emit('alert',alertstatus,namespace="/station6")
+            parentmission.socket.emit('alert',alertstatus,namespace="/station1")
+            parentmission.socket.emit('alert',alertstatus,namespace="/station6")
             return True
         else:
             return False
