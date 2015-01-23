@@ -10,7 +10,6 @@ class Mission:
         self.name = dictionary['name']
         self.map = dictionary['map']
         self.vessel = dictionary['id']
-        self.map.dictionary[self.vessel].parent = self
         self.objective = dictionary['obj']
         self.socket = None
         self.timer = None
@@ -21,6 +20,8 @@ class Mission:
         self.emittoallstations("status","1.5")
         self.timer = threading.Timer(600, self.Start)
         self.timer.start()
+    def GetVessel(self):
+        return self.map.dictionary[self.vessel]
     def join(self,key):
         self.GetStations()[key]['taken'] = True
         self.socket.emit("lobbystations", self.GetStations(), namespace="/lobby")
@@ -57,7 +58,6 @@ class Mission:
         self.name = dictionary['name']
         self.map = dictionary['map']
         self.vessel = dictionary['id']
-        self.map.dictionary[self.vessel].parent = self
         self.objective = dictionary['obj']
         self.emittoallstations("status","1.5")
         self.Start()
@@ -70,34 +70,66 @@ class Map:
         self.dictionary[str(self.counter)] = obj
         return str(self.counter)
 class Vessel:
-    def __init__(self):
-        self.alertmodule = AlertModule(self,0,100,100)
+    def __init__(self, specs):
+        self.parentmission = None
+        self.alertmodule = AlertModule(self.parentmission,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
+        self.antennamodule = AntennaModule(self.parentmission,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
 class AlertModule:
-    def __init__(self, parentmission, alertstatus, health, power):
+    def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
         self.alertstatus = alertstatus
         self.health = health
         self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
     def changestatus(self,alertstatus):
-        if self.health > 5 and self.power > 5:
+        if self.health > mindamage and self.power > minpower:
             self.alertstatus = alertstatus
             if self.alertstatus == 0:
                 parentmission.SaveGame()
+            emit('alert',alertstatus,namespace="/station1")
+            emit('alert',alertstatus,namespace="/station6")
+            return True
         else:
-            self.alertstatus = 2 #red alert
+            return False
+    def action(self):
+        pass
 class AntennaModule:
-    def __init__(self, parentmission, antennarange, health, power):
+    def __init__(self, parentmission, antennarange, antennastrength, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
         self.antennarange = antennarange
+        self.antennastrength = antennastrength
         self.health = health
         self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.ignorelist = []
         self.scanlist = []
     def scan(self):
-        del scanlist[:]
-        for obj in parentmission.parent.map.dictionary:
-            if obj.type == "signal":
-                pass
+        if power >= minpower and health >= mindamage:
+            del self.scanlist[:]
+            for obj in self.parentmission.map.dictionary:
+                if obj.type == "signal":
+                    if (obj.strength + (self.antennarange*(self.health/self.maxhealth))) * (obj.strength + (self.antennarange*(self.health/self.maxhealth)))<= self.distance(obj):
+                        self.scanlist.append(obj)
+    def distance(self,obj):
+        xd = obj.x - self.parentmission.GetVessel().x
+        yd = obj.y - self.parentmission.GetVessel().y
+        zd = obj.z - self.parentmission.GetVessel().z
+        return (xd*xd + yd*yd + zd*zd)
+    def send(self,signal):
+        if power >= minpower and health >= mindamage:
+            signal.strength = self.antennastrength*(self.power/self.maxpower)
+            self.parentmission.map.Add(signal)
+    def action(self):
+        self.scan()
 newmap = Map()
 newid = newmap.Add(Vessel())
 dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid, 'obj':None}
