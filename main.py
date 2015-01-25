@@ -150,6 +150,8 @@ class AntennaModule:
             return False
     def action(self):
         self.scan()
+class CommunicationsModule:
+    pass
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
