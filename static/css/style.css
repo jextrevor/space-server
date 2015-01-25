@@ -6,6 +6,9 @@ font-size:400%;
 .page-header{
 text-align:center;
 }
+body {
+    overflow:hidden;
+}
 html *{
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -76,6 +79,11 @@ transition: opacity 0.5s ease-in;
 }
 #errordisconnect{
 
+}
+#stationpage{
+  position:relative;
+  top:0;
+  left:0;
 }
 #briefing{
 	text-align:justify;
