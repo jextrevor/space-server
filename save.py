@@ -141,7 +141,7 @@ class AntennaModule:
     def action(self):
         self.scan()
 newmap = Map()
-vesselspecs = {'x':0,'y':0,'z':0,'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100}
+vesselspecs = {'x':0,'y':0,'z':0,'alertstatus':0,'alerthealth':100,'alertpower':0,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100}
 newid = newmap.Add(Vessel(vesselspecs))
 dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid, 'obj':None}
 f = open('missions/Trevor.mis','wb')

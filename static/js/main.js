@@ -54,6 +54,12 @@ function joinstation(data){
 socket.disconnect();
 socket = null;
 stationsocket = io.connect('http://'+window.location.hostname+':'+window.location.port+'/station'+data,conn_options);
+stationsocket.on('message', function(data){
+if(data == "not responding"){
+    var data = new Audio("static/media/notresponding.mp3");
+    data.play();
+}
+});
 stationsocket.on('status', function(json){
 if(json == "0"){
 	document.getElementById("controls").style.display = "none";
