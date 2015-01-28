@@ -64,7 +64,7 @@ stationsocket.on('status', function(json){
 if(json == "0"){
 	document.getElementById("controls").style.display = "none";
 	document.getElementById("briefing").style.display = "initial";
-	document.getElementById("briefing").innerHTML = "<h1>MISSION TERMINATED</h1>"
+	document.getElementById("briefingcontent").innerHTML = "<h1>MISSION TERMINATED</h1>"
 }
 if(json == "1"){
     document.getElementById("missionstart").style.display = "none";
@@ -105,6 +105,10 @@ function selectstation(){
     var e = document.getElementById("stationselect");
     var strUser = e.options[e.selectedIndex].value;
     socket.emit('lobbyjoin',strUser);
+}
+function buttonsound(){
+    var data = new Audio("static/media/button.wav");
+    data.play();
 }
 function doshake(){
     document.getElementById("briefingcontent").style["-webkit-filter"] = "blur("+magnitude/10+"px)";
