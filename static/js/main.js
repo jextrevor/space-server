@@ -73,6 +73,7 @@ if(json == "1.5"){
     document.getElementById("missionstart").style.display = "initial";
 }
 if(json == "2"){
+    document.getElementById("missionstart").style.display = "none";
 	document.getElementById("briefing").style.display = "none";
 	document.getElementById("controls").style.display = "initial";
 }
@@ -81,6 +82,9 @@ stationsocket.on('html',function(json){
 document.getElementById("stationpage").style.display = "initial";
 document.getElementById("mainpage").style.display = "none";
 document.getElementById("controls").innerHTML = json;
+});
+stationsocket.on('js',function(json){
+eval(json);
 });
 stationsocket.on('disconnect', function(){
 document.getElementById("errordisconnect").style.display="initial";
@@ -108,6 +112,10 @@ function selectstation(){
 }
 function buttonsound(){
     var data = new Audio("static/media/button.wav");
+    data.play();
+}
+function shortsound(){
+    var data = new Audio("static/media/buttonshort.wav");
     data.play();
 }
 function doshake(){

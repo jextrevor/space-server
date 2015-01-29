@@ -3,4 +3,12 @@
   <li role="presentation"><a>Communications</a></li>
   <li role="presentation"><a>Flight Log</a></li>
 </ul>
-<button class="btn btn-warning btn-lg" onclick="stationsocket.emit('setalert',1);buttonsound();">Set alert status to 1</button>
+<div class="container" id="alertspage" style="display:initial">
+<div class="container">
+<h1>Alerts</h1>
+<br />
+<button class="btn btn-success btn-lg" id="greenalertbutton" onclick="stationsocket.emit('setalert',0);shortsound();" style="box-shadow: 0 0 30px #00FF00;">Green Alert</button><br /><br />
+<button class="btn btn-warning btn-lg" id="yellowalertbutton" onclick="stationsocket.emit('setalert',1);shortsound();">Yellow Alert</button><br /><br />
+<button class="btn btn-danger btn-lg" id="redalertbutton" onclick="stationsocket.emit('setalert',2);shortsound();">Red Alert</button><br /><br />
+</div>
+</div>
