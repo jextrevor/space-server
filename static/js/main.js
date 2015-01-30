@@ -7,6 +7,7 @@ var conn_options = {
 var shake;
 var magnitude = 0;
 var willstop = true;
+var iscaptain = false;
 var socket = io.connect('http://'+window.location.hostname+':'+window.location.port+'/lobby',conn_options);
 socket.on('lobbyconnect', function(json) {
         document.getElementById("connecting").style.display ="none";
@@ -64,7 +65,7 @@ stationsocket.on('status', function(json){
 if(json == "0"){
 	document.getElementById("controls").style.display = "none";
 	document.getElementById("briefing").style.display = "initial";
-	document.getElementById("briefingcontent").innerHTML = "<h1>MISSION TERMINATED</h1>"
+	document.getElementById("briefingcontent").innerHTML = "<h1>MISSION TERMINATED</h1>";
 }
 if(json == "1"){
     document.getElementById("missionstart").style.display = "none";
@@ -76,6 +77,21 @@ if(json == "2"){
     document.getElementById("missionstart").style.display = "none";
 	document.getElementById("briefing").style.display = "none";
 	document.getElementById("controls").style.display = "initial";
+}
+if(json == "3"){
+    document.getElementById("controls").style.display = "none";
+    document.getElementById("briefing").style.display = "initial";
+    document.getElementById("briefingcontent").innerHTML = "<h1>VICTORY!!!!</h1>";
+}
+if(json == "4"){
+    document.getElementById("controls").style.display = "none";
+    document.getElementById("briefing").style.display = "initial";
+    if(iscaptain == true){
+    document.getElementById("briefingcontent").innerHTML = "<h1>MISSION FAILED</h1><p>Please discuss why you failed with your crew, then select Restart.</p><button class='btn btn-warning btn-lg' onclick='socket.emit(\"message\",\"restart\");'>Restart Mission</button>";
+}
+else{
+    document.getElementById("briefingcontent").innerHTML = "<h1>MISSION FAILED</h1>";
+}
 }
 });
 stationsocket.on('html',function(json){

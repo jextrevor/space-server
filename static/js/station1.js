@@ -1,3 +1,4 @@
+iscaptain = true;
 stationsocket.on("alert",function(json){
 	if(json == "0"){
 		document.getElementById("greenalertbutton").style['box-shadow'] = "0 0 30px #00FF00";
