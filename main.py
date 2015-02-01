@@ -131,8 +131,8 @@ class AlertModule:
     def action(self):
         pass
     def update(self):
-        self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station1")
-        self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station6")
+        self.parentmission.parentmission.socket.emit('alert',self.alertstatus,namespace="/station1")
+        self.parentmission.parentmission.socket.emit('alert',self.alertstatus,namespace="/station6")
 class AntennaModule:
     def __init__(self, parentmission, antennarange, antennastrength, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower, receivelist):
         self.parentmission = parentmission
