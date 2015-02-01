@@ -36,6 +36,12 @@ class Mission:
     def terminate(self):
         self.status = 0
         self.emittoallstations("status", "0")
+    def fail(self):
+        self.status = 4
+        self.emittoallstations("status", "4")
+    def win(self):
+        self.status = 3
+        self.emittoallstations("status", "3")
     def emittoallstations(self,key,value):
         for i in range(len(self.GetStations())+1):
             self.socket.emit(key, value,namespace="/station"+str(i))
@@ -43,6 +49,7 @@ class Mission:
         self.status = 2
         self.emittoallstations("status","2")
         self.SaveGame()
+        self.vessel.update()
     def StopCountdown(self):
         self.timer.cancel()
         self.status = 1
@@ -65,6 +72,7 @@ class Mission:
         self.map.dictionary[self.vessel].parentmission = self
         self.objective = dictionary['obj']
         self.emittoallstations("status","1.5")
+        self.vessel.update()
         self.Start()
 class Map:
     def __init__(self):
@@ -80,10 +88,18 @@ class Vessel:
         self.x = specs['x']
         self.y = specs['y']
         self.z = specs['z']
+        self.control = specs['control']
+        self.objectives = Objectives(self,specs['briefing'])
+        self.objectives.init(specs['inorder'],specs['mustnot'],specs['events'],specs['musthave'])
         self.alertmodule = AlertModule(self,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
         self.communicationsmodule = CommunicationsModule(self,specs['communicationshealth'],specs['communicationspower'],specs['communicationsmindamage'],specs['communicationsminpower'],specs['communicationsbreakdamage'],specs['communicationsmaxhealth'],specs['communicationsmaxpower'],specs['communicationsaddress'])
         self.antennamodule = AntennaModule(self,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'],specs['antennareceivelist'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
+    def update(self):
+        self.alertmodule.update()
+        self.communicationsmodule.update()
+        self.antennamodule.update()
+        self.objectives.update()
 class AlertModule:
     def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
@@ -107,6 +123,9 @@ class AlertModule:
             return False
     def action(self):
         pass
+    def update(self):
+        self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station1")
+        self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station6")
 class AntennaModule:
     def __init__(self, parentmission, antennarange, antennastrength, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower, receivelist):
         self.parentmission = parentmission
@@ -143,6 +162,8 @@ class AntennaModule:
             return False
     def action(self):
         self.scan()
+    def update(self):
+        pass
 class CommunicationsModule:
     def __init__(self, parentmission, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower, address):
         self.parentmission = parentmission
@@ -155,11 +176,13 @@ class CommunicationsModule:
         self.maxpower = maxpower
         self.address = address
         self.connectedto = []
+        self.messages = []
     def check(self):
         if self.power >= self.minpower and self.health >= self.mindamage:
             for obj in self.parentmission.antennamodule.scanlist:
                 if obj.data['type'] == "MESSAGE" and obj.data['to'] == self.address:
-                    self.parentmission.parentmission.socket.emit("message",obj.data, namespace="/station1")
+                    self.messages.append(obj.data)
+                    self.parentmission.parentmission.socket.emit("newmessage",obj.data, namespace="/station1")
                 if obj.data['type'] == "MESSAGE" and obj.data['to'] != self.address:
                     if obj.origin in self.connectedto:
                         self.parentmission.antennamodule.send(obj)
@@ -174,9 +197,9 @@ class CommunicationsModule:
                         self.parentmission.parentmission.socket.emit('connected',obj.data['from'],namespace="/station4")
                     else:
                         self.parentmission.parentmission.socket.emit('connectrequest',obj.data['from'],namespace="/station4")
-    def send(self, message, toaddress):
+    def send(self, message, toaddress, frequency):
         if self.power >= self.minpower and self.health >= self.mindamage:
-            signal = Signal(self.address,{"type":"MESSAGE","to":toaddress,"message":message, "from":self.address})
+            signal = Signal(self.address,{"type":"MESSAGE","to":toaddress,"message":message, "from":self.address, "frequency":frequency})
             return self.parentmission.antennamodule.send(signal)
         else:
             return False
@@ -195,14 +218,69 @@ class CommunicationsModule:
             return False
     def action(self):
         self.check()
+    def update(self):
+        for i in self.messages:
+            self.parentmission.parentmission.socket.emit("addmessage",i, namespace="/station1")
+        for i in self.connectedto:
+            self.parentmission.parentmission.socket.emit("connected",i, namespace="/station4")
 class Signal:
     def __init__(self,origin,data):
         self.origin = origin
         self.data = data
+class Objectives:
+    def __init__(self, parentmission, briefingmessage):
+        self.inorder = []
+        self.currentobjective = 0
+        self.mustnot = []
+        self.events = []
+        self.parentmission = parentmission
+        self.musthave = []
+        self.briefingmessage = briefingmessage
+    def run(self):
+        if self.currentobjective < len(self.inorder):
+            self.inorder[self.currentobjective].check()
+            if self.inorder[self.currentobjective].done == True:
+                self.parentmission.parentmisison.socket.emit("objective", self.currentobjective, namespace="/station1")
+                self.currentobjective += 1
+        for i in mustnot:
+            i.check()
+            if i.done == True:
+                self.parentmission.parentmission.fail()
+        for i in self.events:
+            i.check()
+        if self.currentobjective >= len(self.inorder):
+            readytowin = True
+            for i in self.musthave:
+                i.check()
+                if i.done != True:
+                    readytowin = False
+            if readytowin == True:
+                self.parentmission.parentmission.win()
+    def init(self, inorder, mustnot, events, musthave):
+        for key, value in inorder.iteritems():
+            inorder.append(Objective(self,key,value))
+        for key, value in mustnot.iteritems():
+            mustnot.append(Objective(self,key,value))
+        for key, value in events.iteritems():
+            events.append(Objective(self,key,value))
+        for key, value in musthave.iteritems():
+            musthave.append(Objective(self,key,value))
+    def update(self):
+        pass
+class Objective:
+    def __init__(self, parent, code, eventcode):
+        self.parent = parent
+        self.code = code
+        self.eventcode = eventcode
+        self.done = False
+    def check(self):
+        eval(self.code)
+        if self.done == True:
+            eval(eventcode)
 newmap = Map()
-vesselspecs = {'x':0,'y':0,'z':0,'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841}
+vesselspecs = {'x':0,'y':0,'z':0,'inorder':{},'mustnot':{},'events':{},'musthave':{},'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841}
 newid = newmap.Add(Vessel(vesselspecs))
-dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid, 'obj':None}
+dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid}
 f = open('missions/Trevor.mis','wb')
 pickle.dump(dictionary,f)
 f.close()

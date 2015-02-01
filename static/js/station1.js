@@ -16,3 +16,27 @@ stationsocket.on("alert",function(json){
 		document.getElementById("redalertbutton").style['box-shadow'] = "0 0 30px #FF0000";
 	}
 });
+window['showalerts'] = function(){
+	document.getElementById("alertspage").style.display = "initial";
+	document.getElementById("communicationspage").style.display = "none";
+	document.getElementById("objectivespage").style.display = "none";
+	document.getElementById("alertstab").className = "active";
+	document.getElementById("communicationstab").className = "";
+	document.getElementById("objectivestab").className = "";
+}
+window['showcommunications'] = function(){
+	document.getElementById("alertspage").style.display = "none";
+	document.getElementById("communicationspage").style.display = "initial";
+	document.getElementById("objectivespage").style.display = "none";
+	document.getElementById("alertstab").className = "";
+	document.getElementById("communicationstab").className = "active";
+	document.getElementById("objectivestab").className = "";
+}
+window['showobjectives'] = function(){
+	document.getElementById("alertspage").style.display = "none";
+	document.getElementById("communicationspage").style.display = "none";
+	document.getElementById("objectivespage").style.display = "initial";
+	document.getElementById("alertstab").className = "";
+	document.getElementById("communicationstab").className = "";
+	document.getElementById("objectivestab").className = "active";
+}

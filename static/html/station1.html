@@ -1,7 +1,7 @@
 <ul class="nav nav-tabs nav-justified">
-  <li role="presentation" class="active"><a>Alerts</a></li>
-  <li role="presentation"><a>Communications</a></li>
-  <li role="presentation"><a>Flight Log</a></li>
+  <li role="presentation" class="active" onclick="showalerts();shortsound();" id="alertstab"><a>Alerts</a></li>
+  <li role="presentation" onclick="showcommunications();shortsound();" id="communicationstab"><a>Communications</a></li>
+  <li role="presentation" onclick="showobjectives();shortsound();" id="objectivestab"><a>Objectives</a></li>
 </ul>
 <div class="container" id="alertspage" style="display:initial">
 <div class="container">
@@ -10,5 +10,24 @@
 <button class="btn btn-success btn-lg" id="greenalertbutton" onclick="stationsocket.emit('setalert',0);shortsound();" style="box-shadow: 0 0 30px #00FF00;">Green Alert</button><br /><br />
 <button class="btn btn-warning btn-lg" id="yellowalertbutton" onclick="stationsocket.emit('setalert',1);shortsound();">Yellow Alert</button><br /><br />
 <button class="btn btn-danger btn-lg" id="redalertbutton" onclick="stationsocket.emit('setalert',2);shortsound();">Red Alert</button><br /><br />
+</div>
+</div>
+<div class="container" id="communicationspage" style="display:none">
+<div class="container">
+<h1>Communications</h1>
+<br />
+<div class="list-group" id="inbox">
+<a class="list-group-item">Hey</a>
+<a class="list-group-item">Hey</a>
+<a class="list-group-item">Hey</a>
+<a class="list-group-item">Hey</a>
+<a class="list-group-item">Hey</a>
+</div>
+</div>
+</div>
+<div class="container" id="objectivespage" style="display:none">
+<div class="container">
+<h1>Objectives</h1>
+<br />
 </div>
 </div>

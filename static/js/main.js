@@ -14,13 +14,17 @@ socket.on('lobbyconnect', function(json) {
         if(json == "0"){
             document.getElementById("joinmission").style.display="none";
             document.getElementById("choosemission").style.display = "initial";
+            document.getElementById("full").style.display = "none";
         }
         else if(json == "1"){
             document.getElementById("joinmission").style.display = "initial";
             document.getElementById("choosemission").style.display = "none";
+            document.getElementById("full").style.display = "none";
         }
         else{
-            document.getElementById("connecting").style.display="initial";
+            document.getElementById("full").style.display = "initial";
+            document.getElementById("joinmission").style.display = "none";
+            document.getElementById("choosemission").style.display = "none";
         }
     });
 socket.on('lobbymissionlist', function(json) {
@@ -101,6 +105,9 @@ document.getElementById("controls").innerHTML = json;
 });
 stationsocket.on('js',function(json){
 eval(json);
+});
+stationsocket.on('briefingmessage',function(json){
+document.getElementById("briefingcontent").innerHTML += json;
 });
 stationsocket.on('disconnect', function(){
 document.getElementById("errordisconnect").style.display="initial";
