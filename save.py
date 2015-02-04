@@ -11,7 +11,6 @@ class Mission:
         self.map = dictionary['map']
         self.vessel = dictionary['id']
         self.map.dictionary[self.vessel].parentmission = self
-        self.objective = dictionary['obj']
         self.socket = None
         self.timer = None
     def GetStations(self):
@@ -49,14 +48,14 @@ class Mission:
         self.status = 2
         self.emittoallstations("status","2")
         self.SaveGame()
-        self.vessel.update()
+        self.GetVessel().update()
     def StopCountdown(self):
         self.timer.cancel()
         self.status = 1
         self.emittoallstations("status","1")
     def SaveGame(self):
         self.map.dictionary[self.vessel].parentmission = None
-        dictionary = {'status':self.status, 'name':self.name, 'map':self.map, 'id':self.vessel, 'obj':self.objective}
+        dictionary = {'status':self.status, 'name':self.name, 'map':self.map, 'id':self.vessel}
         f = open('save.mis','wb')
         pickle.dump(dictionary,f)
         f.close()
@@ -70,9 +69,7 @@ class Mission:
         self.map = dictionary['map']
         self.vessel = dictionary['id']
         self.map.dictionary[self.vessel].parentmission = self
-        self.objective = dictionary['obj']
         self.emittoallstations("status","1.5")
-        self.vessel.update()
         self.Start()
 class Map:
     def __init__(self):
@@ -175,6 +172,7 @@ class CommunicationsModule:
         self.maxhealth = maxhealth
         self.maxpower = maxpower
         self.address = address
+        self.frequency = 1
         self.connectedto = []
         self.messages = []
     def check(self):
@@ -218,7 +216,15 @@ class CommunicationsModule:
             return False
     def action(self):
         self.check()
+    def setfreq(self,newfrequency):
+        if self.power >= self.minpower and self.health >= self.mindamage:
+            self.frequency = newfrequency
+            self.parentmission.parentmission.socket.emit("frequency",self.frequency, namespace="/station1")
+            return True
+        else:
+            return False
     def update(self):
+        self.parentmission.parentmission.socket.emit("frequency",self.frequency, namespace="/station1")
         for i in self.messages:
             self.parentmission.parentmission.socket.emit("addmessage",i, namespace="/station1")
         for i in self.connectedto:

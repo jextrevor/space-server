@@ -16,6 +16,32 @@ stationsocket.on("alert",function(json){
 		document.getElementById("redalertbutton").style['box-shadow'] = "0 0 30px #FF0000";
 	}
 });
+stationsocket.on("frequency",function(json){
+	if(json == "0"){
+		document.getElementById("publicfreqbutton").style['box-shadow'] = "0 0 30px #0000FF";
+		document.getElementById("civfreqbutton").style['box-shadow'] = "none";
+		document.getElementById("specialfreqbutton").style['box-shadow'] = "none";
+	}
+	if(json == "1"){
+		document.getElementById("publicfreqbutton").style['box-shadow'] = "none";
+		document.getElementById("civfreqbutton").style['box-shadow'] = "0 0 30px #0000FF";
+		document.getElementById("specialfreqbutton").style['box-shadow'] = "none";
+	}
+	if(json == "2"){
+		document.getElementById("publicfreqbutton").style['box-shadow'] = "none";
+		document.getElementById("civfreqbutton").style['box-shadow'] = "none";
+		document.getElementById("specialfreqbutton").style['box-shadow'] = "0 0 30px #0000FF";
+	}
+});
+stationsocket.on("newmessage",function(json){
+	document.getElementById("inbox").innerHTML+="<a onclick='showinbox("+json+");buttonsound();'>"+json['from']+"</a>";
+});
+stationsocket.on("addmessage",function(json){
+	document.getElementById("inbox").innerHTML+="<a onclick='showinbox("+json+");buttonsound();'>"+json['from']+"</a>";
+});
+window['showinbox'] = function(json){
+	document.getElementById("messagebody").innerHTML = json['message'];
+}
 window['showalerts'] = function(){
 	document.getElementById("alertspage").style.display = "initial";
 	document.getElementById("communicationspage").style.display = "none";

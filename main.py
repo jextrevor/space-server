@@ -182,6 +182,7 @@ class CommunicationsModule:
         self.maxhealth = maxhealth
         self.maxpower = maxpower
         self.address = address
+        self.frequency = 1
         self.connectedto = []
         self.messages = []
     def check(self):
@@ -225,7 +226,16 @@ class CommunicationsModule:
             return False
     def action(self):
         self.check()
+    def setfreq(self,newfrequency):
+        if self.power >= self.minpower and self.health >= self.mindamage:
+            self.frequency = newfrequency
+            self.parentmission.parentmission.socket.emit("frequency",self.frequency, namespace="/station1")
+            return True
+        else:
+            return False
     def update(self):
+        self.parentmission.parentmission.socket.emit("frequency",self.frequency, namespace="/station1")
+        self.messages.append({'type':"MESSAGE",'to':self.address,'from':19216801,'message':"Anyone there?"})
         for i in self.messages:
             self.parentmission.parentmission.socket.emit("addmessage",i, namespace="/station1")
         for i in self.connectedto:
@@ -350,6 +360,11 @@ def stationdisconnect():
 @socketio.on('setalert', namespace="/station1")
 def setalert(json):
     responding = mission.map.dictionary[mission.vessel].alertmodule.changestatus(json)
+    if responding == False:
+        emit("message", "not responding", namespace="/station1")
+@socketio.on('setfreq', namespace="/station1")
+def setalert(json):
+    responding = mission.map.dictionary[mission.vessel].communicationsmodule.setfreq(json)
     if responding == False:
         emit("message", "not responding", namespace="/station1")
 @socketio.on('message', namespace="/station1")
