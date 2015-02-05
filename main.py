@@ -23,7 +23,8 @@ class Mission:
         self.map.dictionary[self.vessel].parentmission = self
         self.timethread = None
         self.actionthread = None
-        self.lock = threading.Lock()
+        self.lock = None
+        self.running = True
         self.socket = None
         self.timer = None
     def GetStations(self):
@@ -46,20 +47,23 @@ class Mission:
         if readytostart == True:
             self.Countdown()
     def move(self):
-        while True:
+        while self.running:
             for key, value in self.map.dictionary.iteritems():
                 value.move()
     def action(self):
-        while True:
+        while self.running:
             for key, value in self.map.dictionary.iteritems():
                 value.action()
     def terminate(self):
+        self.running = False
         self.status = 0
         self.emittoallstations("status", "0")
     def fail(self):
+        self.running = False
         self.status = 4
         self.emittoallstations("status", "4")
     def win(self):
+        self.running = False
         self.status = 3
         self.emittoallstations("status", "3")
     def emittoallstations(self,key,value):
@@ -68,8 +72,13 @@ class Mission:
     def Start(self):
         self.status = 2
         self.emittoallstations("status","2")
+        self.running = True
         self.timethread = threading.Thread(self.move)
         self.timethread.dameon = True
+        self.timethread.start()
+        self.actionthread = threading.Thread(self.action)
+        self.actionthread.dameon = True
+        self.actionthread.start()
         self.SaveGame()
         self.GetVessel().update()
     def StopCountdown(self):
