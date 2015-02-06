@@ -409,6 +409,9 @@ def setalert(json):
     responding = mission.map.dictionary[mission.vessel].communicationsmodule.setfreq(json)
     if responding == False:
         emit("message", "not responding", namespace="/station1")
+@socketio.on('sendmessage', namespace="/station1")
+def sendmessage(json):
+    responding = mission.map.dictionary[mission.vessel].communicationsmodule.send()
 @socketio.on('message', namespace="/station1")
 def message(json):
     if message == "restart":
