@@ -25,6 +25,8 @@ class Mission:
         self.actionthread = None
         self.lock = None
         self.running = True
+        self.willsave = False
+        self.timethrough = False
         self.socket = None
         self.timer = None
     def GetStations(self):
@@ -50,10 +52,20 @@ class Mission:
         while self.running:
             for key, value in self.map.dictionary.iteritems():
                 value.move()
+            self.timethrough = True
+            if self.willsave == True:
+                while self.willsave == True:
+                    pass
+            self.timethrough = False
     def action(self):
         while self.running:
             for key, value in self.map.dictionary.iteritems():
                 value.action()
+            if self.willsave == True:
+                while self.timethrough == False:
+                    pass
+                self.SaveGame()
+                self.willsave = False
     def terminate(self):
         self.running = False
         self.status = 0
@@ -73,13 +85,13 @@ class Mission:
         self.status = 2
         self.emittoallstations("status","2")
         self.running = True
-        self.timethread = threading.Thread(self.move)
+        self.SaveGame()
+        self.timethread = threading.Thread(target=self.move)
         self.timethread.dameon = True
         self.timethread.start()
-        self.actionthread = threading.Thread(self.action)
+        self.actionthread = threading.Thread(target=self.action)
         self.actionthread.dameon = True
         self.actionthread.start()
-        self.SaveGame()
         self.GetVessel().update()
     def StopCountdown(self):
         self.timer.cancel()
@@ -113,6 +125,7 @@ class Map:
         return str(self.counter)
 class Vessel:
     def __init__(self, specs):
+        self.type = "vessel"
         self.parentmission = None
         self.x = specs['x']
         self.y = specs['y']
@@ -151,7 +164,7 @@ class AlertModule:
         if self.health > self.mindamage and self.power > self.minpower:
             self.alertstatus = alertstatus
             if self.alertstatus == 0:
-                self.parentmission.parentmission.SaveGame()
+                self.parentmission.parentmission.willsave = True
             self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station1")
             self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station6")
             return True
@@ -179,7 +192,7 @@ class AntennaModule:
     def scan(self):
         if self.power >= self.minpower and self.health >= self.mindamage:
             del self.scanlist[:]
-            for obj in self.parentmission.parentmission.map.dictionary:
+            for obj in self.parentmission.parentmission.map.dictionary.itervalues():
                 if obj.type == "signal" and obj.data['frequency'] in self.receivelist:
                     if (obj.strength + (self.antennarange*(self.health/self.maxhealth))) * (obj.strength + (self.antennarange*(self.health/self.maxhealth)))<= self.distance(obj):
                         self.scanlist.append(obj)
@@ -282,13 +295,13 @@ class Objectives:
         self.parentmission = parentmission
         self.musthave = []
         self.briefingmessage = briefingmessage
-    def run(self):
+    def action(self):
         if self.currentobjective < len(self.inorder):
             self.inorder[self.currentobjective].check()
             if self.inorder[self.currentobjective].done == True:
                 self.parentmission.parentmisison.socket.emit("objective", self.currentobjective, namespace="/station1")
                 self.currentobjective += 1
-        for i in mustnot:
+        for i in self.mustnot:
             i.check()
             if i.done == True:
                 self.parentmission.parentmission.fail()
@@ -304,13 +317,13 @@ class Objectives:
                 self.parentmission.parentmission.win()
     def init(self, inorder, mustnot, events, musthave):
         for key, value in inorder.iteritems():
-            inorder.append(Objective(self,key,value))
+            self.inorder.append(Objective(self,key,value))
         for key, value in mustnot.iteritems():
-            mustnot.append(Objective(self,key,value))
+            self.mustnot.append(Objective(self,key,value))
         for key, value in events.iteritems():
-            events.append(Objective(self,key,value))
+            self.events.append(Objective(self,key,value))
         for key, value in musthave.iteritems():
-            musthave.append(Objective(self,key,value))
+            self.musthave.append(Objective(self,key,value))
     def update(self):
         pass
 class Objective:
@@ -320,9 +333,9 @@ class Objective:
         self.eventcode = eventcode
         self.done = False
     def check(self):
-        eval(self.code)
+        exec self.code
         if self.done == True:
-            eval(eventcode)
+            exec self.eventcode
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)

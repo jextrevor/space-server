@@ -25,7 +25,6 @@
 <div class="panel panel-primary col-xs-8 nopadding">
 <div class="panel-heading"><h3 class="panel-title">Message Body</h3></div>
 <div class="panel-body maxheight" id="messagebody">
-Hey Guys!!
 </div>
 </div>
 </div>
@@ -33,12 +32,28 @@ Hey Guys!!
 <div class="row">
 <div class="col-xs-4">
 <h4>Frequency</h4>
-<button class="btn btn-info btn-lg" id="publicfreqbutton" onclick="stationsocket.emit('setfreq',0);shortsound();" style="box-shadow: 0 0 30px #0000FF;">Public</button><br /><br />
+<button class="btn btn-info btn-lg" id="publicfreqbutton" onclick="stationsocket.emit('setfreq',0);shortsound();" style="box-shadow: 0 0 30px #0000FF;">Public Use</button><br /><br />
 <button class="btn btn-info btn-lg" id="civfreqbutton" onclick="stationsocket.emit('setfreq',1);shortsound();">Civilian Use</button><br /><br />
 <button class="btn btn-info btn-lg" id="specialfreqbutton" onclick="stationsocket.emit('setfreq',2);shortsound();">Military Use</button><br /><br />
 </div>
 <div class="col-xs-8">
 <h4>Send Message</h4>
+<div class="row">
+<label for="toaddress" class="col-xs-2">Ship Address</label>
+<div class="col-xs-10">
+<input type="number" id="toaddress" name="toaddress" class="form-control" /></div></div>
+<br />
+<div class="row">
+<label for="messagetosend" class="col-xs-2">Message</label>
+<div class="col-xs-10">
+<textarea id="messagetosend" name="messagetosend" class="form-control" cols="80" rows="8" style="resize:none"></textarea></div>
+</div>
+<br />
+<div class="row">
+<div class="col-xs-2"></div>
+<div class="col-xs-10">
+<button class="btn btn-success" onclick="sendmessage();buttonsound();">Send Message</button>
+</div>
 </div>
 </div>
 </div>

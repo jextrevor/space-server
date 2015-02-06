@@ -11,6 +11,12 @@ class Mission:
         self.map = dictionary['map']
         self.vessel = dictionary['id']
         self.map.dictionary[self.vessel].parentmission = self
+        self.timethread = None
+        self.actionthread = None
+        self.lock = None
+        self.running = True
+        self.willsave = False
+        self.timethrough = False
         self.socket = None
         self.timer = None
     def GetStations(self):
@@ -32,13 +38,34 @@ class Mission:
                 readytostart = False
         if readytostart == True:
             self.Countdown()
+    def move(self):
+        while self.running:
+            for key, value in self.map.dictionary.iteritems():
+                value.move()
+            self.timethrough = True
+            if self.willsave == True:
+                while self.willsave == True:
+                    pass
+            self.timethrough = False
+    def action(self):
+        while self.running:
+            for key, value in self.map.dictionary.iteritems():
+                value.action()
+            if self.willsave == True:
+                while self.timethrough == False:
+                    pass
+                self.SaveGame()
+                self.willsave = False
     def terminate(self):
+        self.running = False
         self.status = 0
         self.emittoallstations("status", "0")
     def fail(self):
+        self.running = False
         self.status = 4
         self.emittoallstations("status", "4")
     def win(self):
+        self.running = False
         self.status = 3
         self.emittoallstations("status", "3")
     def emittoallstations(self,key,value):
@@ -47,7 +74,14 @@ class Mission:
     def Start(self):
         self.status = 2
         self.emittoallstations("status","2")
+        self.running = True
         self.SaveGame()
+        self.timethread = threading.Thread(target=self.move)
+        self.timethread.dameon = True
+        self.timethread.start()
+        self.actionthread = threading.Thread(target=self.action)
+        self.actionthread.dameon = True
+        self.actionthread.start()
         self.GetVessel().update()
     def StopCountdown(self):
         self.timer.cancel()
@@ -81,6 +115,7 @@ class Map:
         return str(self.counter)
 class Vessel:
     def __init__(self, specs):
+        self.type = "vessel"
         self.parentmission = None
         self.x = specs['x']
         self.y = specs['y']
@@ -97,6 +132,13 @@ class Vessel:
         self.communicationsmodule.update()
         self.antennamodule.update()
         self.objectives.update()
+    def action(self):
+        self.alertmodule.action()
+        self.communicationsmodule.action()
+        self.antennamodule.action()
+        self.objectives.action()
+    def move(self):
+        pass
 class AlertModule:
     def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
@@ -112,7 +154,7 @@ class AlertModule:
         if self.health > self.mindamage and self.power > self.minpower:
             self.alertstatus = alertstatus
             if self.alertstatus == 0:
-                self.parentmission.parentmission.SaveGame()
+                self.parentmission.parentmission.willsave = True
             self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station1")
             self.parentmission.parentmission.socket.emit('alert',alertstatus,namespace="/station6")
             return True
@@ -140,7 +182,7 @@ class AntennaModule:
     def scan(self):
         if self.power >= self.minpower and self.health >= self.mindamage:
             del self.scanlist[:]
-            for obj in self.parentmission.parentmission.map.dictionary:
+            for obj in self.parentmission.parentmission.map.dictionary.itervalues():
                 if obj.type == "signal" and obj.data['frequency'] in self.receivelist:
                     if (obj.strength + (self.antennarange*(self.health/self.maxhealth))) * (obj.strength + (self.antennarange*(self.health/self.maxhealth)))<= self.distance(obj):
                         self.scanlist.append(obj)
@@ -225,6 +267,7 @@ class CommunicationsModule:
             return False
     def update(self):
         self.parentmission.parentmission.socket.emit("frequency",self.frequency, namespace="/station1")
+        self.messages.append({'type':"MESSAGE",'to':self.address,'from':19216801,'message':"Anyone there?"})
         for i in self.messages:
             self.parentmission.parentmission.socket.emit("addmessage",i, namespace="/station1")
         for i in self.connectedto:
@@ -242,13 +285,13 @@ class Objectives:
         self.parentmission = parentmission
         self.musthave = []
         self.briefingmessage = briefingmessage
-    def run(self):
+    def action(self):
         if self.currentobjective < len(self.inorder):
             self.inorder[self.currentobjective].check()
             if self.inorder[self.currentobjective].done == True:
                 self.parentmission.parentmisison.socket.emit("objective", self.currentobjective, namespace="/station1")
                 self.currentobjective += 1
-        for i in mustnot:
+        for i in self.mustnot:
             i.check()
             if i.done == True:
                 self.parentmission.parentmission.fail()
@@ -264,13 +307,13 @@ class Objectives:
                 self.parentmission.parentmission.win()
     def init(self, inorder, mustnot, events, musthave):
         for key, value in inorder.iteritems():
-            inorder.append(Objective(self,key,value))
+            self.inorder.append(Objective(self,key,value))
         for key, value in mustnot.iteritems():
-            mustnot.append(Objective(self,key,value))
+            self.mustnot.append(Objective(self,key,value))
         for key, value in events.iteritems():
-            events.append(Objective(self,key,value))
+            self.events.append(Objective(self,key,value))
         for key, value in musthave.iteritems():
-            musthave.append(Objective(self,key,value))
+            self.musthave.append(Objective(self,key,value))
     def update(self):
         pass
 class Objective:
@@ -280,11 +323,11 @@ class Objective:
         self.eventcode = eventcode
         self.done = False
     def check(self):
-        eval(self.code)
+        exec self.code
         if self.done == True:
-            eval(eventcode)
+            exec self.eventcode
 newmap = Map()
-vesselspecs = {'x':0,'y':0,'z':0,'inorder':{},'mustnot':{},'events':{},'musthave':{},'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841}
+vesselspecs = {'x':0,'y':0,'z':0,'inorder':{},'mustnot':{},'events':{},'musthave':{"if self.parent.parentmission.alertmodule.alertstatus == 1:\n    self.done = True":"pass"},'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841}
 newid = newmap.Add(Vessel(vesselspecs))
 dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid}
 f = open('missions/Trevor.mis','wb')

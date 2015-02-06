@@ -34,13 +34,23 @@ stationsocket.on("frequency",function(json){
 	}
 });
 stationsocket.on("newmessage",function(json){
-	document.getElementById("inbox").innerHTML+="<a onclick='showinbox("+json+");buttonsound();'>"+json['from']+"</a>";
+	document.getElementById("inbox").innerHTML+="<a class=\"list-group-item\" onclick='showinbox(this,"+JSON.stringify(json)+");buttonsound();'>"+json['from']+"</a>";
 });
 stationsocket.on("addmessage",function(json){
-	document.getElementById("inbox").innerHTML+="<a onclick='showinbox("+json+");buttonsound();'>"+json['from']+"</a>";
+	document.getElementById("inbox").innerHTML+="<a class=\"list-group-item\" onclick='showinbox(this,"+JSON.stringify(json)+");buttonsound();'>"+json['from']+"</a>";
 });
-window['showinbox'] = function(json){
+window['showinbox'] = function(obj,json){
+	for(object in document.getElementById("inbox").childNodes){
+		object.className = "list-group-item"
+	}
+	obj.className = "list-group-item active"
+	//alert(data);
+	//json = JSON.parse(data);
+	//alert(json['message']);
 	document.getElementById("messagebody").innerHTML = json['message'];
+}
+window['sendmessage'] = function(){
+	alert('in progress');
 }
 window['showalerts'] = function(){
 	document.getElementById("alertspage").style.display = "initial";
