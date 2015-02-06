@@ -50,7 +50,20 @@ window['showinbox'] = function(obj,json){
 	document.getElementById("messagebody").innerHTML = json['message'];
 }
 window['sendmessage'] = function(){
-	alert('in progress');
+	document.getElementById("toaddress").className = "form-controlr";
+	if(document.getElementById("toaddress").value == ""){
+		stationsocket.emit("sendmessage",{'message':document.getElementById("messagetosend").value});
+	}
+	else{
+		address = parseInt(document.getElementById("toaddress").value)
+		if(address == NaN){
+			document.getElementById("toaddress").className = "form-control has-error";
+		}
+		else{
+			stationsocket.emit("sendmessage",{'to':address,'message':document.getElementById("messagetosend").value});
+		}
+	}
+	}
 }
 window['showalerts'] = function(){
 	document.getElementById("alertspage").style.display = "initial";
