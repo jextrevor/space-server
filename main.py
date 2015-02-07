@@ -50,8 +50,8 @@ class Mission:
             self.Countdown()
     def move(self):
         while self.running:
-            for key, value in self.map.dictionary.iteritems():
-                value.move()
+            for key in self.map.dictionary.keys():
+                self.map.dictionary[key].move(self)
             self.timethrough = True
             if self.willsave == True:
                 while self.willsave == True:
@@ -59,8 +59,8 @@ class Mission:
             self.timethrough = False
     def action(self):
         while self.running:
-            for key, value in self.map.dictionary.iteritems():
-                value.action()
+            for key in self.map.dictionary.keys():
+                self.map.dictionary[key].action()
             if self.willsave == True:
                 while self.timethrough == False:
                     pass
@@ -147,7 +147,7 @@ class Vessel:
         self.communicationsmodule.action()
         self.antennamodule.action()
         self.objectives.action()
-    def move(self):
+    def move(self,parentmission):
         pass
 class AlertModule:
     def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
@@ -192,17 +192,23 @@ class AntennaModule:
     def scan(self):
         if self.power >= self.minpower and self.health >= self.mindamage:
             del self.scanlist[:]
-            for obj in self.parentmission.parentmission.map.dictionary.itervalues():
+            for obj in self.parentmission.parentmission.map.dictionary.values():
+                if obj.type == "signal":
+                    print "hi"
                 if obj.type == "signal" and obj.data['frequency'] in self.receivelist:
-                    if (obj.strength + (self.antennarange*(self.health/self.maxhealth))) * (obj.strength + (self.antennarange*(self.health/self.maxhealth)))<= self.distance(obj):
+                    print "yay"
+                    if (obj.strength + (self.antennarange*(self.health/self.maxhealth))) * (obj.strength + (self.antennarange*(self.health/self.maxhealth)))>= self.distance(obj):
                         self.scanlist.append(obj)
+                        print "yay"
     def distance(self,obj):
         xd = obj.x - self.parentmission.x
         yd = obj.y - self.parentmission.y
         zd = obj.z - self.parentmission.z
+        print (xd*xd + yd*yd + zd*zd)
         return (xd*xd + yd*yd + zd*zd)
     def send(self,signal):
         if self.power >= self.minpower and self.health >= self.mindamage:
+            print "hi"
             signal.strength = self.antennastrength*(self.power/self.maxpower)
             signal.origin = self.parentmission.communicationsmodule.address
             self.parentmission.parentmission.map.Add(signal)
@@ -231,8 +237,13 @@ class CommunicationsModule:
         if self.power >= self.minpower and self.health >= self.mindamage:
             for obj in self.parentmission.antennamodule.scanlist:
                 if obj.data['type'] == "MESSAGE" and obj.data['to'] == self.address:
-                    self.messages.append(obj.data)
-                    self.parentmission.parentmission.socket.emit("newmessage",obj.data, namespace="/station1")
+                    if obj.data not in self.messages:
+                        self.messages.append(obj.data)
+                        self.parentmission.parentmission.socket.emit("newmessage",obj.data, namespace="/station1")
+                if obj.data['type'] == "MESSAGE" and obj.data['to'] == 0:
+                    if obj.data not in self.messages:
+                        self.messages.append(obj.data)
+                        self.parentmission.parentmission.socket.emit("newmessage",obj.data, namespace="/station1")
                 if obj.data['type'] == "MESSAGE" and obj.data['to'] != self.address:
                     if obj.origin in self.connectedto:
                         self.parentmission.antennamodule.send(obj)
@@ -248,21 +259,22 @@ class CommunicationsModule:
                     else:
                         self.parentmission.parentmission.socket.emit('connectrequest',obj.data['from'],namespace="/station4")
     def send(self, message, toaddress, frequency):
+        print frequency
         if self.power >= self.minpower and self.health >= self.mindamage:
-            signal = Signal(self.address,{"type":"MESSAGE","to":toaddress,"message":message, "from":self.address, "frequency":frequency})
+            signal = Signal(self.parentmission.x, self.parentmission.y, self.parentmission.z, self.address,{"type":"MESSAGE","to":toaddress,"message":message, "from":self.address, "frequency":frequency})
             return self.parentmission.antennamodule.send(signal)
         else:
             return False
     def connect(self, toaddress):
         if self.power >= self.minpower and self.health >= self.mindamage:
-            signal = Signal(self.address,{"type":"CONNECTION","to":toaddress,"from":self.address})
+            signal = Signal(self.parentmission.x, self.parentmission.y, self.parentmission.z, self.address,{"type":"CONNECTION","to":toaddress,"from":self.address})
             return self.parentmission.antennamodule.send(signal)
         else:
             return False
     def disconnect(self, toaddress):
         if self.power >= self.minpower and self.health >= self.mindamage:
             self.connectedto.remove(address)
-            signal = Signal(self.address,{"type":"DISCONNECTION","to":toaddress,"message":message, "from":self.address})
+            signal = Signal(self.parentmission.x, self.parentmission.y, self.parentmission.z, self.address,{"type":"DISCONNECTION","to":toaddress,"message":message, "from":self.address})
             return self.parentmission.antennamodule.send(signal)
         else:
             return False
@@ -283,9 +295,17 @@ class CommunicationsModule:
         for i in self.connectedto:
             self.parentmission.parentmission.socket.emit("connected",i, namespace="/station4")
 class Signal:
-    def __init__(self,origin,data):
+    def __init__(self,x,y,z,origin,data):
         self.origin = origin
         self.data = data
+        self.type="signal"
+        self.x = x
+        self.y = y
+        self.z = z
+    def action(self):
+        pass
+    def move(self,parentmission):
+        pass
 class Objectives:
     def __init__(self, parentmission, briefingmessage):
         self.inorder = []
@@ -344,7 +364,8 @@ def allstationconnect(key):
         emit('js',myfile.read())
     with open("static/html/station"+str(key)+".html") as myfile:
         emit('html',myfile.read())
-    emit('briefingmessage',mission.GetVessel().objectives.briefingmessage)
+    with open("static/html/training"+str(key)+".html") as myfile:
+        emit('briefingmessage',myfile.read() + mission.GetVessel().objectives.briefingmessage)
 def allstationdisconnect(key):
     print "Station "+str(key)+" disconnected"
     if mission.status == 1.5:
@@ -411,7 +432,9 @@ def setalert(json):
         emit("message", "not responding", namespace="/station1")
 @socketio.on('sendmessage', namespace="/station1")
 def sendmessage(json):
-    responding = mission.map.dictionary[mission.vessel].communicationsmodule.send()
+    responding = mission.map.dictionary[mission.vessel].communicationsmodule.send(json['message'],json['to'],mission.map.dictionary[mission.vessel].communicationsmodule.frequency)
+    if responding == False:
+        emit("message", "not responding", namespace="/station1")
 @socketio.on('message', namespace="/station1")
 def message(json):
     if message == "restart":

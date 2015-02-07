@@ -107,7 +107,7 @@ stationsocket.on('js',function(json){
 eval(json);
 });
 stationsocket.on('briefingmessage',function(json){
-document.getElementById("briefingcontent").innerHTML += json;
+document.getElementById("briefingcontent").innerHTML = json;
 });
 stationsocket.on('disconnect', function(){
 document.getElementById("errordisconnect").style.display="initial";

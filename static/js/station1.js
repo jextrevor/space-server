@@ -1,4 +1,5 @@
 iscaptain = true;
+listofmessages = [];
 stationsocket.on("alert",function(json){
 	if(json == "0"){
 		document.getElementById("greenalertbutton").style['box-shadow'] = "0 0 30px #00FF00";
@@ -34,25 +35,29 @@ stationsocket.on("frequency",function(json){
 	}
 });
 stationsocket.on("newmessage",function(json){
-	document.getElementById("inbox").innerHTML+="<a class=\"list-group-item\" onclick='showinbox(this,"+JSON.stringify(json)+");buttonsound();'>"+json['from']+"</a>";
+	listofmessages.push(json);
+
+	document.getElementById("inbox").innerHTML = "<a class=\"list-group-item\" onclick='showinbox(this,"+listofmessages.indexOf(json)+");buttonsound();'>"+json['from']+"</a>" + document.getElementById("inbox").innerHTML;
 });
 stationsocket.on("addmessage",function(json){
-	document.getElementById("inbox").innerHTML+="<a class=\"list-group-item\" onclick='showinbox(this,"+JSON.stringify(json)+");buttonsound();'>"+json['from']+"</a>";
+	listofmessages.push(json);
+	document.getElementById("inbox").innerHTML ="<a class=\"list-group-item\" onclick='showinbox(this,"+listofmessages.indexOf(json)+");buttonsound();'>"+json['from']+"</a>" + document.getElementById("inbox").innerHTML;
 });
 window['showinbox'] = function(obj,json){
-	for(object in document.getElementById("inbox").childNodes){
-		object.className = "list-group-item"
+	for(i = 0; i < document.getElementById("inbox").children.length; i++){
+		//object.removeAttribute("class")
+		document.getElementById("inbox").children[i].className = "list-group-item";
 	}
 	obj.className = "list-group-item active"
 	//alert(data);
 	//json = JSON.parse(data);
 	//alert(json['message']);
-	document.getElementById("messagebody").innerHTML = json['message'];
+	document.getElementById("messagebody").innerHTML = listofmessages[json]['message'];
 }
 window['sendmessage'] = function(){
-	document.getElementById("toaddress").className = "form-controlr";
+	document.getElementById("toaddress").className = "form-control";
 	if(document.getElementById("toaddress").value == ""){
-		stationsocket.emit("sendmessage",{'message':document.getElementById("messagetosend").value});
+		stationsocket.emit("sendmessage",{'to':0,'message':document.getElementById("messagetosend").value});
 	}
 	else{
 		address = parseInt(document.getElementById("toaddress").value)
@@ -62,7 +67,6 @@ window['sendmessage'] = function(){
 		else{
 			stationsocket.emit("sendmessage",{'to':address,'message':document.getElementById("messagetosend").value});
 		}
-	}
 	}
 }
 window['showalerts'] = function(){
