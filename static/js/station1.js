@@ -18,17 +18,17 @@ stationsocket.on("alert",function(json){
 	}
 });
 stationsocket.on("frequency",function(json){
-	if(json == "0"){
+	if(json == "1"){
 		document.getElementById("publicfreqbutton").style['box-shadow'] = "0 0 30px #0000FF";
 		document.getElementById("civfreqbutton").style['box-shadow'] = "none";
 		document.getElementById("specialfreqbutton").style['box-shadow'] = "none";
 	}
-	if(json == "1"){
+	if(json == "80"){
 		document.getElementById("publicfreqbutton").style['box-shadow'] = "none";
 		document.getElementById("civfreqbutton").style['box-shadow'] = "0 0 30px #0000FF";
 		document.getElementById("specialfreqbutton").style['box-shadow'] = "none";
 	}
-	if(json == "2"){
+	if(json == "3000"){
 		document.getElementById("publicfreqbutton").style['box-shadow'] = "none";
 		document.getElementById("civfreqbutton").style['box-shadow'] = "none";
 		document.getElementById("specialfreqbutton").style['box-shadow'] = "0 0 30px #0000FF";
@@ -38,6 +38,7 @@ stationsocket.on("newmessage",function(json){
 	listofmessages.push(json);
 
 	document.getElementById("inbox").innerHTML = "<a class=\"list-group-item\" onclick='showinbox(this,"+listofmessages.indexOf(json)+");buttonsound();'>"+json['from']+"</a>" + document.getElementById("inbox").innerHTML;
+	commmessage();
 });
 stationsocket.on("addmessage",function(json){
 	listofmessages.push(json);
@@ -53,6 +54,10 @@ window['showinbox'] = function(obj,json){
 	//json = JSON.parse(data);
 	//alert(json['message']);
 	document.getElementById("messagebody").innerHTML = listofmessages[json]['message'];
+}
+window['commmessage'] = function(){
+	var data = new Audio("static/media/contact.mp3");
+    data.play();
 }
 window['sendmessage'] = function(){
 	document.getElementById("toaddress").className = "form-control";

@@ -132,6 +132,7 @@ class Vessel:
         self.z = specs['z']
         self.control = specs['control']
         self.objectives = Objectives(self,specs['briefing'])
+        self.music = MusicModule(self)
         self.objectives.init(specs['inorder'],specs['mustnot'],specs['events'],specs['musthave'])
         self.alertmodule = AlertModule(self,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
         self.communicationsmodule = CommunicationsModule(self,specs['communicationshealth'],specs['communicationspower'],specs['communicationsmindamage'],specs['communicationsminpower'],specs['communicationsbreakdamage'],specs['communicationsmaxhealth'],specs['communicationsmaxpower'],specs['communicationsaddress'])
@@ -139,11 +140,13 @@ class Vessel:
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
+        self.music.update()
         self.communicationsmodule.update()
         self.antennamodule.update()
         self.objectives.update()
     def action(self):
         self.alertmodule.action()
+        self.music.action()
         self.communicationsmodule.action()
         self.antennamodule.action()
         self.objectives.action()
@@ -356,6 +359,22 @@ class Objective:
         exec self.code
         if self.done == True:
             exec self.eventcode
+class MusicModule:
+    def __init__(self, parentmission):
+        self.parentmission = parentmission
+        self.theme = 0
+    def update(self):
+        self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+    def action(self):
+        if self.theme == 0 and self.parentmission.parentmission.status == 2:
+            self.theme = 1
+            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+        if self.theme != 0 and self.parentmission.parentmission.status >= 3:
+            self.theme = 0
+            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+        if self.theme != 0 and self.parentmission.parentmission.status == 0:
+            self.theme = 0
+            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
