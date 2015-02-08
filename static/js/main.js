@@ -91,7 +91,7 @@ if(json == "4"){
     document.getElementById("controls").style.display = "none";
     document.getElementById("briefing").style.display = "initial";
     if(iscaptain == true){
-    document.getElementById("briefingcontent").innerHTML = "<h1>MISSION FAILED</h1><p>Please discuss why you failed with your crew, then select Restart.</p><button class='btn btn-warning btn-lg' onclick='socket.emit(\"message\",\"restart\");'>Restart Mission</button>";
+    document.getElementById("briefingcontent").innerHTML = "<h1>MISSION FAILED</h1><p>Please discuss why you failed with your crew, then select Restart.</p><button class='btn btn-warning btn-lg' onclick='stationsocket.emit(\"message\",\"restart\");'>Restart Mission</button>";
 }
 else{
     document.getElementById("briefingcontent").innerHTML = "<h1>MISSION FAILED</h1>";

@@ -1,5 +1,6 @@
 iscaptain = true;
 listofmessages = [];
+currentobjective = 0;
 stationsocket.on("alert",function(json){
 	if(json == "0"){
 		document.getElementById("greenalertbutton").style['box-shadow'] = "0 0 30px #00FF00";
@@ -34,11 +35,31 @@ stationsocket.on("frequency",function(json){
 		document.getElementById("specialfreqbutton").style['box-shadow'] = "0 0 30px #0000FF";
 	}
 });
+stationsocket.on("objectives",function(json){
+	json = json['eventlist'];
+	document.getElementById("objectivelist").innerHTML = "";
+	for(i = 0; i < json.length; i++){
+		document.getElementById("objectivelist").innerHTML += '<li class="list-group-item">'+json[i]+'<span id="objective'+i+'" style="float:right"></span></li>';
+	}
+});
+stationsocket.on("objective",function(json){
+	for(i = 0; i < document.getElementById("objectivelist").children.length; i++){
+		//object.removeAttribute("class")
+		document.getElementById("objective"+i).className = "";
+	}
+	for(i = 0; i < json; i++){
+		//object.removeAttribute("class")
+		document.getElementById("objective"+i).className = "glyphicon glyphicon-ok";
+	}
+})
 stationsocket.on("newmessage",function(json){
 	listofmessages.push(json);
 
 	document.getElementById("inbox").innerHTML = "<a class=\"list-group-item\" onclick='showinbox(this,"+listofmessages.indexOf(json)+");buttonsound();'>"+json['from']+"</a>" + document.getElementById("inbox").innerHTML;
 	commmessage();
+});
+stationsocket.on("clearmessage",function(json){
+	document.getElementById("inbox").innerHTML = "";
 });
 stationsocket.on("addmessage",function(json){
 	listofmessages.push(json);
