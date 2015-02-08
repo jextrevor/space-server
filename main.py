@@ -132,7 +132,7 @@ class Vessel:
         self.z = specs['z']
         self.control = specs['control']
         self.objectives = Objectives(self,specs['briefing'])
-        self.music = MusicModule(self)
+        self.musicmodule = MusicModule(self)
         self.objectives.init(specs['inorder'],specs['mustnot'],specs['events'],specs['musthave'])
         self.alertmodule = AlertModule(self,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
         self.communicationsmodule = CommunicationsModule(self,specs['communicationshealth'],specs['communicationspower'],specs['communicationsmindamage'],specs['communicationsminpower'],specs['communicationsbreakdamage'],specs['communicationsmaxhealth'],specs['communicationsmaxpower'],specs['communicationsaddress'])
@@ -140,13 +140,13 @@ class Vessel:
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
-        self.music.update()
+        self.musicmodule.update()
         self.communicationsmodule.update()
         self.antennamodule.update()
         self.objectives.update()
     def action(self):
         self.alertmodule.action()
-        self.music.action()
+        self.musicmodule.action()
         self.communicationsmodule.action()
         self.antennamodule.action()
         self.objectives.action()
@@ -364,29 +364,30 @@ class MusicModule:
         self.parentmission = parentmission
         self.theme = 0
     def update(self):
-        self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+        self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
     def action(self):
         if self.theme == 0 and self.parentmission.parentmission.status == 2:
             self.theme = 1
-            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
         if self.theme != 0 and self.parentmission.parentmission.status >= 3:
             self.theme = 0
-            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
         if self.theme != 0 and self.parentmission.parentmission.status == 0:
             self.theme = 0
-            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
         if self.inbattle() == True and self.theme != 4:
             self.theme = 4
-            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
-        else if self.intense() == True and self.theme != 3:
+            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
+        elif self.intense() == True and self.theme != 3:
             self.theme = 3
-            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
-        else if self.tense() == True and self.theme != 2:
+            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
+        elif self.tense() == True and self.theme != 2:
             self.theme = 2
-            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
-        else if self.theme != 1:
+            print self.theme
+            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
+        elif self.theme != 1:
             self.theme = 1
-            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
     def inbattle(self):
         return False
     def intense(self):
