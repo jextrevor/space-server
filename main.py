@@ -375,6 +375,18 @@ class MusicModule:
         if self.theme != 0 and self.parentmission.parentmission.status == 0:
             self.theme = 0
             self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+        if self.inbattle() == True and self.theme != 4:
+            self.theme = 4
+            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+        else if self.intense() == True and self.theme != 3:
+            self.theme = 3
+            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+        else if self.tense() == True and self.theme != 2:
+            self.theme = 2
+            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+        else if self.theme != 1:
+            self.theme = 1
+            self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
