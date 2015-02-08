@@ -387,6 +387,15 @@ class MusicModule:
         else if self.theme != 1:
             self.theme = 1
             self.parentmission.parentmission.socket.emit("theme",self.theme, namespace="/station6")
+    def inbattle(self):
+        return False
+    def intense(self):
+        return False
+    def tense(self):
+        if self.parentmission.alertmodule.alertstatus != 0:
+            return True
+        else:
+            return False
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
