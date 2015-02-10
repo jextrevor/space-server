@@ -327,8 +327,8 @@ class Objectives:
         if self.currentobjective < len(self.inorder):
             self.inorder[self.currentobjective].check()
             if self.inorder[self.currentobjective].done == True:
-                self.parentmission.parentmission.socket.emit("objective", self.currentobjective, namespace="/station1")
                 self.currentobjective += 1
+                self.parentmission.parentmission.socket.emit("objective", self.currentobjective, namespace="/station1")
         for i in self.mustnot:
             i.check()
             if i.done == True:
@@ -344,14 +344,14 @@ class Objectives:
             if readytowin == True:
                 self.parentmission.parentmission.win()
     def init(self, inorder, mustnot, events, musthave, eventlist):
-        for key, value in inorder.iteritems():
-            self.inorder.append(Objective(self,key,value))
-        for key, value in mustnot.iteritems():
-            self.mustnot.append(Objective(self,key,value))
-        for key, value in events.iteritems():
-            self.events.append(Objective(self,key,value))
-        for key, value in musthave.iteritems():
-            self.musthave.append(Objective(self,key,value))
+        for value in inorder:
+            self.inorder.append(Objective(self,value[0],value[1]))
+        for value in mustnot:
+            self.mustnot.append(Objective(self,value[0],value[1]))
+        for value in events:
+            self.events.append(Objective(self,value[0],value[1]))
+        for value in musthave:
+            self.musthave.append(Objective(self,value[0],value[1]))
         self.eventlist = eventlist
     def update(self):
         self.parentmission.parentmission.socket.emit("objectives", {"eventlist":self.eventlist}, namespace="/station1")

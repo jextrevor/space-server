@@ -317,8 +317,8 @@ class Objectives:
         if self.currentobjective < len(self.inorder):
             self.inorder[self.currentobjective].check()
             if self.inorder[self.currentobjective].done == True:
-                self.parentmission.parentmisison.socket.emit("objective", self.currentobjective, namespace="/station1")
                 self.currentobjective += 1
+                self.parentmission.parentmission.socket.emit("objective", self.currentobjective, namespace="/station1")
         for i in self.mustnot:
             i.check()
             if i.done == True:
@@ -334,18 +334,18 @@ class Objectives:
             if readytowin == True:
                 self.parentmission.parentmission.win()
     def init(self, inorder, mustnot, events, musthave, eventlist):
-        for key, value in inorder.iteritems():
-            self.inorder.append(Objective(self,key,value))
-        for key, value in mustnot.iteritems():
-            self.mustnot.append(Objective(self,key,value))
-        for key, value in events.iteritems():
-            self.events.append(Objective(self,key,value))
-        for key, value in musthave.iteritems():
-            self.musthave.append(Objective(self,key,value))
+        for value in inorder:
+            self.inorder.append(Objective(self,value[0],value[1]))
+        for value in mustnot:
+            self.mustnot.append(Objective(self,value[0],value[1]))
+        for value in events:
+            self.events.append(Objective(self,value[0],value[1]))
+        for value in musthave:
+            self.musthave.append(Objective(self,value[0],value[1]))
         self.eventlist = eventlist
     def update(self):
-        self.parentmission.parentmission.socket.emit("objectives", self.eventlist, namespace="/station1")
-        self.parentmission.parentmisison.socket.emit("objective", self.currentobjective, namespace="/station1")
+        self.parentmission.parentmission.socket.emit("objectives", {"eventlist":self.eventlist}, namespace="/station1")
+        self.parentmission.parentmission.socket.emit("objective", self.currentobjective, namespace="/station1")
 class Objective:
     def __init__(self, parent, code, eventcode):
         self.parent = parent
@@ -397,7 +397,7 @@ class MusicModule:
         else:
             return False
 newmap = Map()
-vesselspecs = {'x':0,'y':0,'z':0,'eventlist':['Set the alert status to red.','Set the alert status to yellow.','Set the alert status to red.'],'inorder':{"if self.parent.parentmission.alertmodule.alertstatus == 2:\n    self.done = True":"pass","if self.parent.parentmission.alertmodule.alertstatus == 1:\n    self.done = True":"pass","if self.parent.parentmission.alertmodule.alertstatus == 2:\n    self.done = True":"pass"},'mustnot':{},'events':{},'musthave':{},'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841}
+vesselspecs = {'x':0,'y':0,'z':0,'eventlist':['Set the alert status to red.','Set the alert status to yellow.','Set the alert status to red.'],'inorder':[["if self.parent.parentmission.alertmodule.alertstatus == 2:\n    self.done = True","pass"],["if self.parent.parentmission.alertmodule.alertstatus == 1:\n    self.done = True","pass"],["if self.parent.parentmission.alertmodule.alertstatus == 2:\n    self.done = True","pass"]],'mustnot':[],'events':[],'musthave':[],'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841}
 newid = newmap.Add(Vessel(vesselspecs))
 dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid}
 f = open('missions/Trevor.mis','wb')
