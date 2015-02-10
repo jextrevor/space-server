@@ -57,6 +57,7 @@ class Mission:
                 while self.willsave == True:
                     pass
             self.timethrough = False
+            time.sleep(0.001)
     def action(self):
         while self.running:
             for key in self.map.dictionary.keys():
@@ -142,6 +143,7 @@ class Vessel:
         self.objectives.init(specs['inorder'],specs['mustnot'],specs['events'],specs['musthave'],specs['eventlist'])
         self.alertmodule = AlertModule(self,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
         self.communicationsmodule = CommunicationsModule(self,specs['communicationshealth'],specs['communicationspower'],specs['communicationsmindamage'],specs['communicationsminpower'],specs['communicationsbreakdamage'],specs['communicationsmaxhealth'],specs['communicationsmaxpower'],specs['communicationsaddress'])
+        self.warpmodule = WarpModule(self,specs['warphealth'], specs['warpstability'], specs['warpmaxstability'], specs['warppower'], specs['warpmindamage'], specs['warpminpower'], specs['warpbreakdamage'], specs['warphealth'], specs['warpmaxpower'], specs['warpinstabledamage'], specs['warpinstablewarp'], specs['warpinstableheat'], specs['warpbreakheat'], specs['warpmaxheat'], specs['warpmaxwarp'])
         self.antennamodule = AntennaModule(self,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'],specs['antennareceivelist'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
@@ -157,7 +159,7 @@ class Vessel:
         self.antennamodule.action()
         self.objectives.action()
     def move(self,parentmission):
-        pass
+        self.warpmodule.move(parentmission)
 class AlertModule:
     def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
@@ -406,6 +408,40 @@ class MusicModule:
             return True
         else:
             return False
+class WarpModule:
+    def __init__(self,parentmission,health, stability, maxstability, power, mindamage, minpower, breakdamage, maxhealth, maxpower, instabledamage, instablewarp, instableheat, breakheat, maxheat, maxwarp):
+        self.parentmission = parentmission
+        self.health = health
+        self.stability = stability
+        self.maxstability = maxstability
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.instabledamage = instabledamage
+        self.instablewarp = instablewarp
+        self.instableheat = instableheat
+        self.breakheat = breakheat
+        self.maxheat = maxheat
+        self.maxwarp = maxwarp
+        self.warpspeed = 0
+    def update(self):
+        self.parentmission.parentmission.socket.emit("warpspeed",self.warpspeed, namespace="/station2")
+    def action(self):
+        pass
+    def move(self):
+        if self.health <= self.instabledamage and self.warp > 0:
+            self.stability -= 0.0001
+        if self.warp >= self.instablewarp:
+            self.stability -= 0.0001
+        if self.heat >= self.instableheat:
+            self.stability -= 0.0001
+        self.stability += 0.00005
+        if self.stability <= 0:
+            self.stability = 0
+            self.health -= self.maxhealth
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
