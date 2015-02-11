@@ -18,7 +18,7 @@ html *{
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    cursor:default;
+    cursor:url(static/media/cursor.cur),default;
 }
 @-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
