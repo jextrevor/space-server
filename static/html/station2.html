@@ -1,1 +1,39 @@
-<p>Hey it's working</p>
+<ul class="nav nav-tabs nav-justified">
+  <li role="presentation" class="active" onclick="showengines();shortsound();" id="enginestab"><a>Engines</a></li>
+  <li role="presentation" onclick="showradar();shortsound();" id="radartab"><a>Radar</a></li>
+  <li role="presentation" onclick="showsettings();shortsound();" id="settingstab"><a>Settings</a></li>
+</ul>
+<div class="container" id="enginespage" style="display:initial">
+<div class="container">
+<h1>Engines</h1>
+<div class="row">
+<div class="col-xs-4">
+<h4>Warp Engines</h4>
+<button class="btn btn-default btn-lg" style="width:100%" onclick="setwarp(0);buttonsound();">Full Stop</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(1);buttonsound();">Warp 1</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(2);buttonsound();">Warp 2</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(3);buttonsound();">Warp 3</button>
+<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(4);buttonsound();">Warp 4</button>
+<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(5);buttonsound();">Warp 5</button>
+<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(6);buttonsound();">Warp 6</button>
+<button class="btn btn-warning btn-lg" style="width:100%" onclick="setwarp(7);buttonsound();">Warp 7</button>
+<button class="btn btn-warning btn-lg" style="width:100%" onclick="setwarp(8);buttonsound();">Warp 8</button>
+<button class="btn btn-danger btn-lg" style="width:100%" onclick="setwarp(9);buttonsound();">Warp 9</button>
+<button class="btn btn-danger btn-lg" style="width:100%" onclick="setwarp(9.9);buttonsound();">Warp 9.9</button>
+</div>
+<div class="col-xs-8">
+<h4>Thrusters</h4>
+</div>
+</div>
+</div>
+</div>
+<div class="container" id="radarpage" style="display:none">
+<div class="container">
+<h1>Radar</h1>
+</div>
+</div>
+<div class="container" id="settingspage" style="display:none">
+<div class="container">
+<h1>Settings</h1>
+</div>
+</div>

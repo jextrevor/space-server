@@ -141,9 +141,11 @@ class Vessel:
         self.objectives = Objectives(self,specs['briefing'])
         self.musicmodule = MusicModule(self)
         self.objectives.init(specs['inorder'],specs['mustnot'],specs['events'],specs['musthave'],specs['eventlist'])
+        self.thrustermodule = ThrusterModule(self,specs['thrusterhealth'],specs['thrusterpower'],specs['thrustermindamage'],specs['thrusterminpower'],specs['thrusterbreakdamage'],specs['thrustermaxhealth'],specs['thrustermaxpower'],specs['thrusterdegree'])
         self.alertmodule = AlertModule(self,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
         self.communicationsmodule = CommunicationsModule(self,specs['communicationshealth'],specs['communicationspower'],specs['communicationsmindamage'],specs['communicationsminpower'],specs['communicationsbreakdamage'],specs['communicationsmaxhealth'],specs['communicationsmaxpower'],specs['communicationsaddress'])
         self.warpmodule = WarpModule(self,specs['warphealth'], specs['warpstability'], specs['warpmaxstability'], specs['warppower'], specs['warpmindamage'], specs['warpminpower'], specs['warpbreakdamage'], specs['warphealth'], specs['warpmaxpower'], specs['warpinstabledamage'], specs['warpinstablewarp'], specs['warpinstableheat'], specs['warpbreakheat'], specs['warpmaxheat'], specs['warpmaxwarp'])
+        self.impulsemodule = ImpulseModule(self,specs['impulsehealth'],specs['impulsepower'],specs['impulsemindamage'],specs['impulseminpower'],specs['impulsebreakdamage'],specs['impulsemaxhealth'],specs['impulsemaxpower'],specs['impulsebreakheat'],specs['impulsemaxheat'],specs['impulsespeed'])
         self.antennamodule = AntennaModule(self,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'],specs['antennareceivelist'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
@@ -156,6 +158,8 @@ class Vessel:
         self.alertmodule.action()
         self.musicmodule.action()
         self.communicationsmodule.action()
+        self.warpmodule.action()
+        self.thrustermodule.action()
         self.antennamodule.action()
         self.objectives.action()
     def move(self,parentmission):
@@ -427,14 +431,26 @@ class WarpModule:
         self.maxheat = maxheat
         self.maxwarp = maxwarp
         self.warpspeed = 0
+        self.heat = 0
+    def setwarpspeed(self,warpspeed):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            if self.warpspeed == 0 and warpspeed != 0:
+                self.parentmission.parentmission.socket.emit("startwarp","",namespace="/station6")
+            if self.warpspeed != 0 and warpspeed == 0:
+                self.parentmission.parentmission.socket.emit("endwarp","",namespace="/station6")
+            self.warpspeed = warpspeed
+            self.parentmission.parentmission.socket.emit("warpspeed",self.warpspeed, namespace="/station2")
+            return True
+        else:
+            return False
     def update(self):
         self.parentmission.parentmission.socket.emit("warpspeed",self.warpspeed, namespace="/station2")
     def action(self):
         pass
-    def move(self):
+    def move(self,parentmission):
         if self.health <= self.instabledamage and self.warp > 0:
             self.stability -= 0.0001
-        if self.warp >= self.instablewarp:
+        if self.warpspeed >= self.instablewarp:
             self.stability -= 0.0001
         if self.heat >= self.instableheat:
             self.stability -= 0.0001
@@ -442,6 +458,57 @@ class WarpModule:
         if self.stability <= 0:
             self.stability = 0
             self.health -= self.maxhealth
+class ThrusterModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,degree):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.degree = degree
+        self.pitch = 0
+        self.yaw = 0
+    def changedegrees(self,pitch,yaw):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.pitch += pitch*self.degree
+            self.yaw += yaw*self.degree
+            self.parentmission.parentmission.socket.emit("degrees",{"pitch":self.pitch,"yaw":self.yaw},namespace="/station2")
+            return True
+        else:
+            return False
+    def update(self):
+        self.parentmission.parentmission.socket.emit("degrees",{"pitch":self.pitch,"yaw":self.yaw},namespace="/station2")
+    def action(self):
+        pass
+class ImpulseModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,breakheat,maxheat,impulsespeed):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.breakheat = breakheat
+        self.maxheat = maxheat
+        self.heat = 0
+        self.impulsespeed = impulsespeed
+        self.magnitude = 0
+    def setspeed(self,speed):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.magnitude = speed
+            self.parentmission.parentmission.socket.emit("impulsespeed",self.magnitude,namespace="/station2")
+            return True
+        else:
+            return False
+    def update(self):
+        self.parentmission.parentmission.socket.emit("impulsespeed",self.magnitude,namespace="/station2")
+    def action(self):
+        pass
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
@@ -528,6 +595,11 @@ def message(json):
 @socketio.on('connect', namespace="/station2")
 def stationconnect():
     allstationconnect(2)
+@socketio.on('setwarp', namespace="/station2")
+def setwarp(json):
+    responding = mission.map.dictionary[mission.vessel].warpmodule.setwarpspeed(json)
+    if responding == False:
+        emit("message", "not responding", namespace="/station2")
 @socketio.on('disconnect', namespace="/station2")
 def stationdisconnect():
     allstationdisconnect(2)

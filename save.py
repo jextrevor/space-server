@@ -131,9 +131,11 @@ class Vessel:
         self.objectives = Objectives(self,specs['briefing'])
         self.musicmodule = MusicModule(self)
         self.objectives.init(specs['inorder'],specs['mustnot'],specs['events'],specs['musthave'],specs['eventlist'])
+        self.thrustermodule = ThrusterModule(self,specs['thrusterhealth'],specs['thrusterpower'],specs['thrustermindamage'],specs['thrusterminpower'],specs['thrusterbreakdamage'],specs['thrustermaxhealth'],specs['thrustermaxpower'],specs['thrusterdegree'])
         self.alertmodule = AlertModule(self,specs['alertstatus'],specs['alerthealth'],specs['alertpower'],specs['alertmindamage'],specs['alertminpower'],specs['alertbreakdamage'],specs['alertmaxhealth'],specs['alertmaxpower'])
         self.communicationsmodule = CommunicationsModule(self,specs['communicationshealth'],specs['communicationspower'],specs['communicationsmindamage'],specs['communicationsminpower'],specs['communicationsbreakdamage'],specs['communicationsmaxhealth'],specs['communicationsmaxpower'],specs['communicationsaddress'])
         self.warpmodule = WarpModule(self,specs['warphealth'], specs['warpstability'], specs['warpmaxstability'], specs['warppower'], specs['warpmindamage'], specs['warpminpower'], specs['warpbreakdamage'], specs['warphealth'], specs['warpmaxpower'], specs['warpinstabledamage'], specs['warpinstablewarp'], specs['warpinstableheat'], specs['warpbreakheat'], specs['warpmaxheat'], specs['warpmaxwarp'])
+        self.impulsemodule = ImpulseModule(self,specs['impulsehealth'],specs['impulsepower'],specs['impulsemindamage'],specs['impulseminpower'],specs['impulsebreakdamage'],specs['impulsemaxhealth'],specs['impulsemaxpower'],specs['impulsebreakheat'],specs['impulsemaxheat'],specs['impulsespeed'])
         self.antennamodule = AntennaModule(self,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'],specs['antennareceivelist'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
@@ -146,6 +148,8 @@ class Vessel:
         self.alertmodule.action()
         self.musicmodule.action()
         self.communicationsmodule.action()
+        self.warpmodule.action()
+        self.thrustermodule.action()
         self.antennamodule.action()
         self.objectives.action()
     def move(self,parentmission):
@@ -417,14 +421,26 @@ class WarpModule:
         self.maxheat = maxheat
         self.maxwarp = maxwarp
         self.warpspeed = 0
+        self.heat = 0
+    def setwarpspeed(self,warpspeed):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            if self.warpspeed == 0 and warpspeed != 0:
+                self.parentmission.parentmission.socket.emit("startwarp","",namespace="/station6")
+            if self.warpspeed != 0 and warpspeed == 0:
+                self.parentmission.parentmission.socket.emit("endwarp","",namespace="/station6")
+            self.warpspeed = warpspeed
+            self.parentmission.parentmission.socket.emit("warpspeed",self.warpspeed, namespace="/station2")
+            return True
+        else:
+            return False
     def update(self):
         self.parentmission.parentmission.socket.emit("warpspeed",self.warpspeed, namespace="/station2")
     def action(self):
         pass
-    def move(self):
+    def move(self,parentmission):
         if self.health <= self.instabledamage and self.warp > 0:
             self.stability -= 0.0001
-        if self.warp >= self.instablewarp:
+        if self.warpspeed >= self.instablewarp:
             self.stability -= 0.0001
         if self.heat >= self.instableheat:
             self.stability -= 0.0001
@@ -432,8 +448,59 @@ class WarpModule:
         if self.stability <= 0:
             self.stability = 0
             self.health -= self.maxhealth
+class ThrusterModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,degree):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.degree = degree
+        self.pitch = 0
+        self.yaw = 0
+    def changedegrees(self,pitch,yaw):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.pitch += pitch*self.degree
+            self.yaw += yaw*self.degree
+            self.parentmission.parentmission.socket.emit("degrees",{"pitch":self.pitch,"yaw":self.yaw},namespace="/station2")
+            return True
+        else:
+            return False
+    def update(self):
+        self.parentmission.parentmission.socket.emit("degrees",{"pitch":self.pitch,"yaw":self.yaw},namespace="/station2")
+    def action(self):
+        pass
+class ImpulseModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,breakheat,maxheat,impulsespeed):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.breakheat = breakheat
+        self.maxheat = maxheat
+        self.heat = 0
+        self.impulsespeed = impulsespeed
+        self.magnitude = 0
+    def setspeed(self,speed):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.magnitude = speed
+            self.parentmission.parentmission.socket.emit("impulsespeed",self.magnitude,namespace="/station2")
+            return True
+        else:
+            return False
+    def update(self):
+        self.parentmission.parentmission.socket.emit("impulsespeed",self.magnitude,namespace="/station2")
+    def action(self):
+        pass
 newmap = Map()
-vesselspecs = {'x':0,'y':0,'z':0,'eventlist':['Set the alert status to red.','Set the alert status to yellow.','Set the alert status to red.'],'inorder':[["if self.parent.parentmission.alertmodule.alertstatus == 2:\n    self.done = True","pass"],["if self.parent.parentmission.alertmodule.alertstatus == 1:\n    self.done = True","pass"],["if self.parent.parentmission.alertmodule.alertstatus == 2:\n    self.done = True","pass"]],'mustnot':[],'events':[],'musthave':[],'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841,'warphealth':100,'warppower':100,'warpmindamage':5,'warpminpower':5,'warpbreakdamage':3,'warpmaxhealth':100,'warpmaxpower':100,'warpstability':100,'warpmaxstability':100,'warpinstabledamage':50,'warpinstablewarp':9.5,'warpinstableheat':50,'warpbreakheat':95,'warpmaxheat':100,'warpmaxwarp':9.9}
+vesselspecs = {'x':0,'y':0,'z':0,'eventlist':['Set the alert status to red.'],'inorder':[["pass","pass"]],'mustnot':[["pass","pass"]],'events':[],'musthave':[],'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841,'warphealth':100,'warppower':100,'warpmindamage':5,'warpminpower':5,'warpbreakdamage':3,'warpmaxhealth':100,'warpmaxpower':100,'warpstability':100,'warpmaxstability':100,'warpinstabledamage':50,'warpinstablewarp':9.5,'warpinstableheat':50,'warpbreakheat':95,'warpmaxheat':100,'warpmaxwarp':9.9,'thrusterhealth':100,'thrusterpower':100,'thrustermindamage':5,'thrusterminpower':5,'thrusterbreakdamage':3,'thrustermaxhealth':100,'thrustermaxpower':100,'thrusterdegree':2,'impulsehealth':100,'impulsepower':100,'impulsemindamage':5,'impulseminpower':5,'impulsebreakdamage':3,'impulsemaxhealth':100,'impulsemaxpower':100,'impulsespeed':0.1,'impulsebreakheat':80,'impulsemaxheat':100}
 newid = newmap.Add(Vessel(vesselspecs))
 dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid}
 f = open('missions/Trevor.mis','wb')
