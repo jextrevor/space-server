@@ -449,11 +449,12 @@ class WarpModule:
         pass
     def move(self,parentmission):
         if self.health <= self.instabledamage and self.warp > 0:
-            self.stability -= 0.0001
+            self.stability -= 0.01
         if self.warpspeed >= self.instablewarp:
-            self.stability -= 0.0001
+            self.stability -= 0.01
+            print self.stability
         if self.heat >= self.instableheat:
-            self.stability -= 0.0001
+            self.stability -= 0.01
         self.stability += 0.00005
         if self.stability <= 0:
             self.stability = 0

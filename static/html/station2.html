@@ -9,20 +9,43 @@
 <div class="row">
 <div class="col-xs-4">
 <h4>Warp Engines</h4>
-<button class="btn btn-default btn-lg" style="width:100%" onclick="setwarp(0);buttonsound();">Full Stop</button>
-<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(1);buttonsound();">Warp 1</button>
-<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(2);buttonsound();">Warp 2</button>
-<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(3);buttonsound();">Warp 3</button>
-<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(4);buttonsound();">Warp 4</button>
-<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(5);buttonsound();">Warp 5</button>
-<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(6);buttonsound();">Warp 6</button>
-<button class="btn btn-warning btn-lg" style="width:100%" onclick="setwarp(7);buttonsound();">Warp 7</button>
-<button class="btn btn-warning btn-lg" style="width:100%" onclick="setwarp(8);buttonsound();">Warp 8</button>
-<button class="btn btn-danger btn-lg" style="width:100%" onclick="setwarp(9);buttonsound();">Warp 9</button>
-<button class="btn btn-danger btn-lg" style="width:100%" onclick="setwarp(9.9);buttonsound();">Warp 9.9</button>
+<button class="btn btn-default btn-lg" style="width:100%; box-shadow: 0 0 30px #CCCCCC;" onclick="setwarp(0);buttonsound();" id="warp0button">Full Stop</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(1);buttonsound();" id="warp1button">Warp 1</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(2);buttonsound();" id="warp2button">Warp 2</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setwarp(3);buttonsound();" id="warp3button">Warp 3</button>
+<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(4);buttonsound();" id="warp4button">Warp 4</button>
+<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(5);buttonsound();" id="warp5button">Warp 5</button>
+<button class="btn btn-info btn-lg" style="width:100%" onclick="setwarp(6);buttonsound();" id="warp6button">Warp 6</button>
+<button class="btn btn-warning btn-lg" style="width:100%" onclick="setwarp(7);buttonsound();" id="warp7button">Warp 7</button>
+<button class="btn btn-warning btn-lg" style="width:100%" onclick="setwarp(8);buttonsound();" id="warp8button">Warp 8</button>
+<button class="btn btn-danger btn-lg" style="width:100%" onclick="setwarp(9);buttonsound();" id="warp9button">Warp 9</button>
+<button class="btn btn-danger btn-lg" style="width:100%" onclick="setwarp(9.9);buttonsound();" id="warp99button">Warp 9.9</button>
 </div>
 <div class="col-xs-8">
 <h4>Thrusters</h4>
+<div class="row">
+<div class="col-xs-4"></div>
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Increase Pitch</button></div>
+<div class="col-xs-4"></div>
+</div>
+<br />
+<div class="row">
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Decrease Yaw</button></div>
+<div class="col-xs-4"></div>
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Increase Yaw</button></div>
+</div>
+<br />
+<div class="row">
+<div class="col-xs-4"></div>
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Decrease Pitch</button></div>
+<div class="col-xs-4"></div>
+</div>
+<br />
+<hr />
+<h4>Impulse Engines</h4>
+<button class="btn btn-default btn-lg" style="width:100%; box-shadow: 0 0 30px #CCCCCC;" onclick="setimpulse(0);buttonsound();" id="impulse0button">Full Stop</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setimpulse(0.5);buttonsound();" id="impulsehalfbutton">Half Impulse</button>
+<button class="btn btn-success btn-lg" style="width:100%" onclick="setimpulse(1);buttonsound();" id="impulsefullbutton">Full Impulse</button>
 </div>
 </div>
 </div>
