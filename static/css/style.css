@@ -18,7 +18,10 @@ html *{
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    cursor:url(static/media/cursor.cur),default;
+    cursor:url(../media/cursor.cur),default !important;
+}
+html{
+  cursor:url(../media/cursor.cur),default !important;
 }
 @-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
