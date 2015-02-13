@@ -578,12 +578,12 @@ class CourseModule:
                 normalizex = coursex / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
                 normalizey = coursey / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
                 normalizez = coursez / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
-            pitch = math.degrees(math.acos(normalizez))
+            pitch = math.acos(normalizez)
             if math.sin(pitch) != 0:
-                yaw = math.degrees(math.acos(normalizex/math.sin(pitch)))
+                yaw = math.acos(normalizex/math.sin(pitch))
             else:
-                yaw = math.degrees(math.acos(normalizey/math.cos(pitch)))
-            return self.parentmission.thrustermodule.setdegrees(pitch,yaw)
+                yaw = math.acos(normalizey/math.cos(pitch))
+            return self.parentmission.thrustermodule.setdegrees(math.degrees(pitch),math.degrees(yaw))
         else:
             return False
     def update(self):
