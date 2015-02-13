@@ -574,9 +574,10 @@ class CourseModule:
             coursex = coursex-self.parentmission.x
             coursey = coursey-self.parentmission.y
             coursez = coursez-self.parentmission.z
-            normalizex = coursex / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
-            normalizey = coursey / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
-            normalizez = coursez / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
+            if math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez) != 0:
+                normalizex = coursex / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
+                normalizey = coursey / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
+                normalizez = coursez / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
             pitch = math.degrees(math.acos(normalizez))
             if math.sin(pitch) != 0:
                 yaw = math.degrees(math.acos(normalizex/math.sin(pitch)))
