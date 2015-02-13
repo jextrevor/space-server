@@ -25,26 +25,26 @@
 <h4>Thrusters</h4>
 <div class="row">
 <div class="col-xs-4"></div>
-<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Increase Pitch</button></div>
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="changepitch(1,0);buttonsound();">Increase Pitch</button></div>
 <div class="col-xs-4"></div>
 </div>
 <br />
 <div class="row">
-<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Decrease Yaw</button></div>
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="changepitch(0,-1);buttonsound();">Decrease Yaw</button></div>
 <div class="col-xs-4"></div>
-<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Increase Yaw</button></div>
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="changepitch(0,1);buttonsound();">Increase Yaw</button></div>
 </div>
 <br />
 <div class="row">
 <div class="col-xs-4"></div>
-<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="buttonsound()">Decrease Pitch</button></div>
+<div class="col-xs-4"><button class="btn btn-info btn-lg" style="width:100%" onclick="changepitch(-1,0);buttonsound();">Decrease Pitch</button></div>
 <div class="col-xs-4"></div>
 </div>
 <br />
 <hr />
 <h4>Impulse Engines</h4>
 <button class="btn btn-default btn-lg" style="width:100%; box-shadow: 0 0 30px #CCCCCC;" onclick="setimpulse(0);buttonsound();" id="impulse0button">Full Stop</button>
-<button class="btn btn-success btn-lg" style="width:100%" onclick="setimpulse(0.5);buttonsound();" id="impulsehalfbutton">Half Impulse</button>
+<button class="btn btn-info btn-lg" style="width:100%" onclick="setimpulse(0.5);buttonsound();" id="impulsehalfbutton">Half Impulse</button>
 <button class="btn btn-success btn-lg" style="width:100%" onclick="setimpulse(1);buttonsound();" id="impulsefullbutton">Full Impulse</button>
 </div>
 </div>
@@ -53,6 +53,23 @@
 <div class="container" id="radarpage" style="display:none">
 <div class="container">
 <h1>Radar</h1>
+<div class="row">
+<div class="col-xs-4">
+<h4>Radar Info</h4>
+<hr />
+<h4>Course - X:<span id="cx"></span> Y:<span id="cy"></span> Z:<span id="cz"></span></h4>
+<label for="x">X:</label>
+<input type="number" name="x" id="x" class="form-control" />
+<label for="y">Y:</label>
+<input type="number" name="y" id="y" class="form-control" />
+<label for="z">Z:</label>
+<input type="number" name="z" id="z" class="form-control" />
+<br />
+<button class="btn btn-success" onclick="setcourse();processsound();">Set Course</button>
+</div>
+<div class="col-xs-8">
+</div>
+</div>
 </div>
 </div>
 <div class="container" id="settingspage" style="display:none">

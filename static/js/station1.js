@@ -87,8 +87,8 @@ window['sendmessage'] = function(){
 	}
 	else{
 		address = parseInt(document.getElementById("toaddress").value)
-		if(address == NaN){
-			document.getElementById("toaddress").className = "form-control has-error";
+		if(isNaN(address)){
+			document.getElementById("toaddress").className = "form-control error";
 		}
 		else{
 			stationsocket.emit("sendmessage",{'to':address,'message':document.getElementById("messagetosend").value});

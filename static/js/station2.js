@@ -25,6 +25,54 @@ window['showsettings'] = function(){
 window['setwarp'] = function(number){
 	stationsocket.emit("setwarp",number);
 }
+window['setimpulse'] = function(number){
+	stationsocket.emit("setimpulse",number);
+}
+window['changepitch'] = function(number,number2){
+	stationsocket.emit("changepitch",{"pitch":number,"yaw":number2});
+}
+window['setcourse'] = function(){
+	document.getElementById("x").className = "form-control";
+	document.getElementById("y").className = "form-control";
+	document.getElementById("z").className = "form-control";
+	x = parseFloat(document.getElementById("x").value)
+	y = parseFloat(document.getElementById("y").value)
+	z = parseFloat(document.getElementById("z").value)
+	if(isNaN(x)){
+		document.getElementById("x").className = "form-control error";
+	}
+	else if(isNaN(y)){
+		document.getElementById("y").className = "form-control error";
+	}
+	else if(isNaN(z)){
+		document.getElementById("z").className = "form-control error";
+	}
+	else{
+		stationsocket.emit("setcourse",{"x":x,"y":y,"z":z});
+	}
+}
+stationsocket.on("course",function(json){
+	document.getElementById("cx").innerHTML = json['x'];
+	document.getElementById("cy").innerHTML = json['y'];
+	document.getElementById("cz").innerHTML = json['z'];
+});
+stationsocket.on("impulsespeed",function(json){
+	if(json == 0){
+		document.getElementById("impulse0button").style['box-shadow'] = "0 0 30px #CCCCCC";
+		document.getElementById("impulsehalfbutton").style['box-shadow'] = "none";
+		document.getElementById("impulsefullbutton").style['box-shadow'] = "none";
+	}
+	if(json == 0.5){
+		document.getElementById("impulse0button").style['box-shadow'] = "none";
+		document.getElementById("impulsehalfbutton").style['box-shadow'] = "0 0 30px #0000FF";
+		document.getElementById("impulsefullbutton").style['box-shadow'] = "none";
+	}
+	if(json == 1){
+		document.getElementById("impulse0button").style['box-shadow'] = "none";
+		document.getElementById("impulsehalfbutton").style['box-shadow'] = "none";
+		document.getElementById("impulsefullbutton").style['box-shadow'] = "0 0 30px #00FF00";
+	}
+});
 stationsocket.on("warpspeed",function(json){
 	if(json == 0){
 		document.getElementById("warp0button").style['box-shadow'] = "0 0 30px #CCCCCC";
