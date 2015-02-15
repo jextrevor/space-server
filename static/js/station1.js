@@ -81,14 +81,14 @@ window['commmessage'] = function(){
     data.play();
 }
 window['sendmessage'] = function(){
-	document.getElementById("toaddress").className = "form-control";
+	document.getElementById("toaddresserror").className = "col-xs-10";
 	if(document.getElementById("toaddress").value == ""){
 		stationsocket.emit("sendmessage",{'to':0,'message':document.getElementById("messagetosend").value});
 	}
 	else{
 		address = parseInt(document.getElementById("toaddress").value)
 		if(isNaN(address)){
-			document.getElementById("toaddress").className = "form-control error";
+			document.getElementById("toaddresserror").className = "col-xs-10 has-error";
 		}
 		else{
 			stationsocket.emit("sendmessage",{'to':address,'message':document.getElementById("messagetosend").value});

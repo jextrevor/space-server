@@ -149,13 +149,21 @@ class Vessel:
         self.warpmodule = WarpModule(self,specs['warphealth'], specs['warpstability'], specs['warpmaxstability'], specs['warppower'], specs['warpmindamage'], specs['warpminpower'], specs['warpbreakdamage'], specs['warphealth'], specs['warpmaxpower'], specs['warpinstabledamage'], specs['warpinstablewarp'], specs['warpinstableheat'], specs['warpbreakheat'], specs['warpmaxheat'], specs['warpmaxwarp'], specs['warpheatwarp'], specs['warpheathealth'])
         self.impulsemodule = ImpulseModule(self,specs['impulsehealth'],specs['impulsepower'],specs['impulsemindamage'],specs['impulseminpower'],specs['impulsebreakdamage'],specs['impulsemaxhealth'],specs['impulsemaxpower'],specs['impulsebreakheat'],specs['impulsemaxheat'],specs['impulsespeed'],specs['impulseheatspeed'],specs['impulseheathealth'])
         self.antennamodule = AntennaModule(self,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'],specs['antennareceivelist'])
-        self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigations','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
+        self.radarmodule = RadarModule(self,specs['radarhealth'],specs['radarpower'],specs['radarmindamage'],specs['radarminpower'],specs['radarbreakdamage'],specs['radarmaxhealth'],specs['radarmaxpower'],specs['radarranges'])
+        self.mapmodule = MapModule(self,specs['maphealth'],specs['mappower'],specs['mapmindamage'],specs['mapminpower'],specs['mapbreakdamage'],specs['mapmaxhealth'],specs['mapmaxpower'])
+        self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigator','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
         self.musicmodule.update()
         self.communicationsmodule.update()
         self.antennamodule.update()
         self.objectives.update()
+        self.thrustermodule.update()
+        self.coursemodule.update()
+        self.warpmodule.update()
+        self.impulsemodule.update()
+        self.radarmodule.update()
+        self.mapmodule.update()
     def action(self):
         self.alertmodule.action()
         self.musicmodule.action()
@@ -163,7 +171,11 @@ class Vessel:
         self.warpmodule.action()
         self.thrustermodule.action()
         self.antennamodule.action()
+        self.impulsemodule.action()
         self.objectives.action()
+        self.mapmodule.action()
+        self.coursemodule.action()
+        self.radarmodule.action()
     def move(self,parentmission):
         self.warpmodule.move(parentmission)
         self.impulsemodule.move(parentmission)
@@ -223,7 +235,7 @@ class AntennaModule:
             del self.scanlist[:]
             for obj in self.parentmission.parentmission.map.dictionary.values():
                 if obj.type == "signal" and obj.data['frequency'] in self.receivelist:
-                    if (obj.strength + (self.antennarange*(self.health/self.maxhealth))) * (obj.strength + (self.antennarange*(self.health/self.maxhealth)))>= self.distance(obj):
+                    if (obj.strength + (self.antennarange*(self.health/self.maxhealth)*(self.power/self.maxpower))) * (obj.strength + (self.antennarange*(self.health/self.maxhealth)*(self.power/self.maxpower)))>= self.distance(obj):
                         self.scanlist.append(obj)
     def distance(self,obj):
         xd = obj.x - self.parentmission.x
@@ -405,15 +417,18 @@ class MusicModule:
         if self.theme != 0 and self.parentmission.parentmission.status == 0:
             self.theme = 0
             self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
-        if self.inbattle() == True and self.theme != 4:
-            self.theme = 4
-            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
-        elif self.intense() == True and self.theme != 3:
-            self.theme = 3
-            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
-        elif self.tense() == True and self.theme != 2:
-            self.theme = 2
-            self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
+        if self.inbattle() == True:
+            if self.theme != 4:
+                self.theme = 4
+                self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
+        elif self.intense() == True:
+            if self.theme != 3:
+                self.theme = 3
+                self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
+        elif self.tense() == True:
+            if self.theme != 2:
+                self.theme = 2
+                self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
         elif self.theme != 1:
             self.theme = 1
             self.parentmission.parentmission.socket.emit("theme",str(self.theme), namespace="/station6")
@@ -471,7 +486,7 @@ class WarpModule:
         if self.heat >= self.breakheat:
             self.heat = self.breakheat
             self.health -= self.maxhealth
-        if self.health <= self.instabledamage and self.warp > 0:
+        if self.health <= self.instabledamage and self.warpspeed > 0:
             self.stability -= 0.01
         if self.warpspeed >= self.instablewarp:
             self.stability -= 0.01
@@ -590,6 +605,70 @@ class CourseModule:
         self.parentmission.parentmission.socket.emit("course",{"x":self.coursex,"y":self.coursey,"z":self.coursez},namespace="/station2")
     def action(self):
         pass
+class RadarModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,ranges):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.ranges = ranges
+        self.range = 0
+        self.objects = []
+    def setrange(self,setrange):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.range = setrange
+            self.parentmission.parentmission.socket.emit("range",self.range,namespace="/station2")
+            return True
+        else:
+            return False
+    def action(self):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            for obj in self.objects:
+                self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
+                if self.distance(self.parentmission.parentmission.map.dictionary[obj]) > (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
+                    self.objects.remove(obj)
+                    self.parentmission.parentmission.socket.emit("remove",obj,namespace="/station2")
+            for key,value in self.parentmission.parentmission.map.dictionary.items():
+                if self.distance(value) <= (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
+                    self.objects.append(key)
+                    self.parentmission.parentmission.socket.emit("add",key,namespace="/station2")
+                    self.parentmission.parentmission.socket.emit("update",{"id":key,"x":value.x,"y":value.y,"z":value.z},namespace="/station2")
+    def distance(self,obj):
+        xd = obj.x - self.parentmission.x
+        yd = obj.y - self.parentmission.y
+        zd = obj.z - self.parentmission.z
+        return (xd*xd + yd*yd + zd*zd)
+    def update(self):
+        self.parentmission.parentmission.socket.emit("clearradar",0,namespace="/station2")
+        for obj in self.objects:
+            self.parentmission.parentmission.socket.emit("add",obj,namespace="/station2")
+            self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
+class MapModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.places = [{"placename":"California","placeinfo":"A tranquil yet expensive place"},{"placename":"Utah","placeinfo":"Place of awesomeness"},{"placename":"Idaho","placeinfo":"Bleak landscape where Napoleon Dynamite resides"},{"placename":"Tennis","placeinfo":"Unknown place"}]
+    def addlist(self,newlist):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.places.extend(newlist)
+            self.parentmission.parentmission.socket.emit("places",{"places":self.places},namespace="/station2")
+            return True
+        else:
+            return False
+    def action(self):
+        pass
+    def update(self):
+        self.parentmission.parentmission.socket.emit("places",{"places":self.places},namespace="/station2")
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)

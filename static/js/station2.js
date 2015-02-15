@@ -1,3 +1,5 @@
+places = [];
+SpiderGL.openNamespace();
 window['showengines'] = function(){
 	document.getElementById("enginespage").style.display = "initial";
 	document.getElementById("radarpage").style.display = "none";
@@ -32,29 +34,53 @@ window['changepitch'] = function(number,number2){
 	stationsocket.emit("changepitch",{"pitch":number,"yaw":number2});
 }
 window['setcourse'] = function(){
-	document.getElementById("x").className = "form-control";
-	document.getElementById("y").className = "form-control";
-	document.getElementById("z").className = "form-control";
+	document.getElementById("xerror").className = "";
+	document.getElementById("yerror").className = "";
+	document.getElementById("zerror").className = "";
 	x = parseFloat(document.getElementById("x").value)
 	y = parseFloat(document.getElementById("y").value)
 	z = parseFloat(document.getElementById("z").value)
 	if(isNaN(x)){
-		document.getElementById("x").className = "form-control error";
+		document.getElementById("xerror").className = "has-error";
 	}
 	else if(isNaN(y)){
-		document.getElementById("y").className = "form-control error";
+		document.getElementById("yerror").className = "has-error";
 	}
 	else if(isNaN(z)){
-		document.getElementById("z").className = "form-control error";
+		document.getElementById("zerror").className = "has-error";
 	}
 	else{
 		stationsocket.emit("setcourse",{"x":x,"y":y,"z":z});
 	}
 }
+window['search'] = function(){
+	document.getElementById("placeinfo").innerHTML = "";
+	document.getElementById("results").innerHTML = "";
+	for(var i=0; i < places.length; i++){
+		if(places[i]['placename'].indexOf(document.getElementById("mapsearch").value) > -1){
+			document.getElementById("results").innerHTML += "<a class=\"list-group-item\" onclick='showsearchinfo(this,"+i+");buttonsound();'>"+places[i]['placename']+"</a>";
+		}
+
+	}
+}
+window['showsearchinfo'] = function(obj,json){
+	for(i = 0; i < document.getElementById("results").children.length; i++){
+		//object.removeAttribute("class")
+		document.getElementById("results").children[i].className = "list-group-item";
+	}
+	obj.className = "list-group-item active"
+	//alert(data);
+	//json = JSON.parse(data);
+	//alert(json['message']);
+	document.getElementById("placeinfo").innerHTML = places[json]['placeinfo'];
+}
 stationsocket.on("course",function(json){
 	document.getElementById("cx").innerHTML = json['x'];
 	document.getElementById("cy").innerHTML = json['y'];
 	document.getElementById("cz").innerHTML = json['z'];
+});
+stationsocket.on("places",function(json){
+	places = json['places'];
 });
 stationsocket.on("impulsespeed",function(json){
 	if(json == 0){
