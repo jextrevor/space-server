@@ -74,7 +74,7 @@ raycaster.setFromCamera( mouse, camera );
         		var selectedObject = scene.getObjectByName("object"+objects[i]);
         		selectedObject.material.color.setHex(0x0000ff);
         		if(intersects[0].object.name == "object"+objects[i]){
-        			document.getElementById("radarinfodiv").innerHTML = "<p>Coordinates - X: "+coords[i][0]+" Y: "+coords[i][1]+" Z: "+coords[i][2];
+        			document.getElementById("radarinfodiv").innerHTML = "<p>Object Coordinates - X: "+coords[i][0]+" Y: "+coords[i][1]+" Z: "+coords[i][2];
         		}
         	}
         	intersects[0].object.material.color.setHex(0xff0000);
