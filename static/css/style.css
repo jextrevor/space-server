@@ -11,6 +11,10 @@ body {
     -webkit-transition:1s ease-out; /* For Safari 3.1 to 6.0 */
     transition:1s ease-out;
 }
+canvas{
+  height:500px;
+  width:500px;
+}
 html *{
     -webkit-touch-callout: none;
     -webkit-user-select: none;

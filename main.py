@@ -190,6 +190,8 @@ class Vessel:
         self.x += xchange
         self.y += ychange
         self.z += zchange
+        if magnitude > 0:
+            self.parentmission.socket.emit("coords",{"x":self.x,"y":self.y,"z":self.z},namespace="/station2")
 class AlertModule:
     def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
@@ -589,6 +591,9 @@ class CourseModule:
             coursex = coursex-self.parentmission.x
             coursey = coursey-self.parentmission.y
             coursez = coursez-self.parentmission.z
+            normalizex = 0
+            normalizey = 0
+            normalizez = 0
             if math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez) != 0:
                 normalizex = coursex / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
                 normalizey = coursey / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
@@ -618,6 +623,7 @@ class RadarModule:
         self.ranges = ranges
         self.range = 0
         self.objects = []
+        self.coords = {}
     def setrange(self,setrange):
         if self.health >= self.mindamage and self.power >= self.minpower:
             self.range = setrange
@@ -628,13 +634,17 @@ class RadarModule:
     def action(self):
         if self.health >= self.mindamage and self.power >= self.minpower:
             for obj in self.objects:
-                self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
+                if self.parentmission.parentmission.map.dictionary[obj].x != self.coords[obj][0] or self.parentmission.parentmission.map.dictionary[obj].y != self.coords[obj][0] or self.parentmission.parentmission.map.dictionary[obj].z != self.coords[obj][2]:
+                    self.coords[obj] = [self.parentmission.parentmission.map.dictionary[obj].x,self.parentmission.parentmission.map.dictionary[obj].y,self.parentmission.parentmission.map.dictionary[obj].z]
+                    if obj != self.parentmission.parentmission.vessel:
+                        self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
                 if self.distance(self.parentmission.parentmission.map.dictionary[obj]) > (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
                     self.objects.remove(obj)
                     self.parentmission.parentmission.socket.emit("remove",obj,namespace="/station2")
             for key,value in self.parentmission.parentmission.map.dictionary.items():
-                if self.distance(value) <= (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
+                if self.distance(value) <= (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)) and key not in self.objects and key != self.parentmission.parentmission.vessel:
                     self.objects.append(key)
+                    self.coords[key] = [value.x,value.y,value.z]
                     self.parentmission.parentmission.socket.emit("add",key,namespace="/station2")
                     self.parentmission.parentmission.socket.emit("update",{"id":key,"x":value.x,"y":value.y,"z":value.z},namespace="/station2")
     def distance(self,obj):

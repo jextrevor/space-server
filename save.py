@@ -181,6 +181,8 @@ class Vessel:
         self.x += xchange
         self.y += ychange
         self.z += zchange
+        if magnitude > 0:
+            self.socket.emit("coords",{"x":self.x,"y":self.y,"z":self.x},namespace="/station2")
 class AlertModule:
     def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
@@ -580,6 +582,9 @@ class CourseModule:
             coursex = coursex-self.parentmission.x
             coursey = coursey-self.parentmission.y
             coursez = coursez-self.parentmission.z
+            normalizex = 0
+            normalizey = 0
+            normalizez = 0
             if math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez) != 0:
                 normalizex = coursex / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
                 normalizey = coursey / math.sqrt(coursex*coursex+coursey*coursey+coursez*coursez)
@@ -609,6 +614,7 @@ class RadarModule:
         self.ranges = ranges
         self.range = 0
         self.objects = []
+        self.coords = {}
     def setrange(self,setrange):
         if self.health >= self.mindamage and self.power >= self.minpower:
             self.range = setrange
@@ -619,13 +625,16 @@ class RadarModule:
     def action(self):
         if self.health >= self.mindamage and self.power >= self.minpower:
             for obj in self.objects:
-                self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
+                if self.parentmission.parentmission.map.dictionary[obj].x != coords[obj][0] or self.parentmission.parentmission.map.dictionary[obj].y != coords[obj][0] or self.parentmission.parentmission.map.dictionary[obj].z != coords[obj][2]:
+                    self.coords[key] = [self.parentmission.parentmission.map.dictionary[obj].x,self.parentmission.parentmission.map.dictionary[obj].y,self.parentmission.parentmission.map.dictionary[obj].z]
+                    self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
                 if self.distance(self.parentmission.parentmission.map.dictionary[obj]) > (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
                     self.objects.remove(obj)
                     self.parentmission.parentmission.socket.emit("remove",obj,namespace="/station2")
             for key,value in self.parentmission.parentmission.map.dictionary.items():
                 if self.distance(value) <= (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
                     self.objects.append(key)
+                    self.coords[key] = [value.x,value.y,value.z]
                     self.parentmission.parentmission.socket.emit("add",key,namespace="/station2")
                     self.parentmission.parentmission.socket.emit("update",{"id":key,"x":value.x,"y":value.y,"z":value.z},namespace="/station2")
     def distance(self,obj):
@@ -660,10 +669,13 @@ class MapModule:
         pass
     def update(self):
         self.parentmission.parentmission.socket.emit("places",{"places":self.places},namespace="/station2")
-
 newmap = Map()
 vesselspecs = {'x':0,'y':0,'z':0,'eventlist':['Set the alert status to red.'],'inorder':[["pass","pass"]],'mustnot':[["pass","pass"]],'events':[],'musthave':[],'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841,'warphealth':100,'warppower':100,'warpmindamage':5,'warpminpower':5,'warpbreakdamage':3,'warpmaxhealth':100,'warpmaxpower':100,'warpstability':100,'warpmaxstability':100,'warpinstabledamage':50,'warpinstablewarp':9,'warpinstableheat':50,'warpbreakheat':95,'warpmaxheat':100,'warpmaxwarp':9.9,'thrusterhealth':100,'thrusterpower':100,'thrustermindamage':5,'thrusterminpower':5,'thrusterbreakdamage':3,'thrustermaxhealth':100,'thrustermaxpower':100,'impulsehealth':100,'impulsepower':100,'impulsemindamage':5,'impulseminpower':5,'impulsebreakdamage':3,'impulsemaxhealth':100,'impulsemaxpower':100,'impulsespeed':0.1,'impulsebreakheat':80,'impulsemaxheat':100,'warpheathealth':75,'warpheatwarp':7,'impulseheatspeed':2,'impulseheathealth':50,'coursehealth':100,'coursepower':100,'coursemindamage':5,'courseminpower':5,'coursebreakdamage':3,'coursemaxhealth':100,'coursemaxpower':100,'radarhealth':100,'radarpower':100,'radarmindamage':5,'radarminpower':5,'radarbreakdamage':3,'radarmaxhealth':100,'radarmaxpower':100,'radarranges':[1,5,10],'maphealth':100,'mappower':100,'mapmindamage':5,'mapminpower':5,'mapbreakdamage':3,'mapmaxhealth':100,'mapmaxpower':100}
+vessel2specs = {'x':5,'y':0,'z':0,'eventlist':['Set the alert status to red.'],'inorder':[["pass","pass"]],'mustnot':[["pass","pass"]],'events':[],'musthave':[],'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841,'warphealth':100,'warppower':100,'warpmindamage':5,'warpminpower':5,'warpbreakdamage':3,'warpmaxhealth':100,'warpmaxpower':100,'warpstability':100,'warpmaxstability':100,'warpinstabledamage':50,'warpinstablewarp':9,'warpinstableheat':50,'warpbreakheat':95,'warpmaxheat':100,'warpmaxwarp':9.9,'thrusterhealth':100,'thrusterpower':100,'thrustermindamage':5,'thrusterminpower':5,'thrusterbreakdamage':3,'thrustermaxhealth':100,'thrustermaxpower':100,'impulsehealth':100,'impulsepower':100,'impulsemindamage':5,'impulseminpower':5,'impulsebreakdamage':3,'impulsemaxhealth':100,'impulsemaxpower':100,'impulsespeed':0.1,'impulsebreakheat':80,'impulsemaxheat':100,'warpheathealth':75,'warpheatwarp':7,'impulseheatspeed':2,'impulseheathealth':50,'coursehealth':100,'coursepower':100,'coursemindamage':5,'courseminpower':5,'coursebreakdamage':3,'coursemaxhealth':100,'coursemaxpower':100,'radarhealth':100,'radarpower':100,'radarmindamage':5,'radarminpower':5,'radarbreakdamage':3,'radarmaxhealth':100,'radarmaxpower':100,'radarranges':[1,5,10],'maphealth':100,'mappower':100,'mapmindamage':5,'mapminpower':5,'mapbreakdamage':3,'mapmaxhealth':100,'mapmaxpower':100}
 newid = newmap.Add(Vessel(vesselspecs))
+signal = Signal(2,0,0,None,{"frequency":-24234})
+signal.strength = 10000000000000000000000000000000000000000
+newmap.Add(signal)
 dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid}
 f = open('missions/Trevor.mis','wb')
 pickle.dump(dictionary,f)
