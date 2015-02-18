@@ -638,11 +638,11 @@ class RadarModule:
                     self.coords[obj] = [self.parentmission.parentmission.map.dictionary[obj].x,self.parentmission.parentmission.map.dictionary[obj].y,self.parentmission.parentmission.map.dictionary[obj].z]
                     if obj != self.parentmission.parentmission.vessel:
                         self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
-                if self.distance(self.parentmission.parentmission.map.dictionary[obj]) > (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
+                if self.distance(self.parentmission.parentmission.map.dictionary[obj]) > (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower))*(self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
                     self.objects.remove(obj)
                     self.parentmission.parentmission.socket.emit("remove",obj,namespace="/station2")
             for key,value in self.parentmission.parentmission.map.dictionary.items():
-                if self.distance(value) <= (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)) and key not in self.objects and key != self.parentmission.parentmission.vessel:
+                if self.distance(value) <= (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower))*(self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)) and key not in self.objects and key != self.parentmission.parentmission.vessel:
                     self.objects.append(key)
                     self.coords[key] = [value.x,value.y,value.z]
                     self.parentmission.parentmission.socket.emit("add",key,namespace="/station2")
@@ -679,6 +679,52 @@ class MapModule:
         pass
     def update(self):
         self.parentmission.parentmission.socket.emit("places",{"places":self.places},namespace="/station2")
+class TargetModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.target = -1
+        self.targettype = ""
+    def target(self,totarget,targettype):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            if targettype == "visual":
+                if distance(self.parentmission.parentmission.map.dictionary[totarget]) <= 1:
+                    self.target = totarget
+                    self.targettype = targettype
+                    self.parentmission.parentmission.socket.emit("target",{"target":totarget,"type":targettype},namespace="/station3")
+                    return True
+                else:
+                    return False
+            elif targettype == "radar":
+                if self.parentmission.radarmodule.health >= self.parentmission.radarmodule.mindamage and self.parentmission.radarmodule.power >= self.parentmission.radarmodule.minpower:
+                    self.target = totarget
+                    self.targettype = targettype
+                    return True
+                else:
+                    return False
+        return False
+    def update(self):
+        self.parentmission.parentmission.socket.emit("target",{"target":self.target,"type":self.targettype},namespace="/station3")
+    def action(self):
+        if targettype == "visual":
+            if distance(self.parentmission.parentmission.map.dictionary[totarget]) > 1:
+                self.target = -1
+                self.parentmission.parentmission.socket.emit("target",{"target":-1,"type":targettype},namespace="/station3")
+        if targettype == "radar":
+            if self.parentmission.radarmodule.health < self.parentmission.radarmodule.mindamage or self.parentmission.radarmodule.power < self.parentmission.radarmodule.minpower:
+                self.target = -1
+                self.parentmission.parentmission.socket.emit("target",{"target":-1,"type":targettype},namespace="/station3")
+    def distance(self,obj):
+        xd = obj.x - self.parentmission.x
+        yd = obj.y - self.parentmission.y
+        zd = obj.z - self.parentmission.z
+        return (xd*xd + yd*yd + zd*zd)
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
