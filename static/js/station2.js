@@ -10,6 +10,7 @@ youryaw = 0;
 var scene;
 var raycaster;
 var mouse;
+var camera;
 window['addarrow'] = function(object){
 	scene.add(object);
 }
@@ -19,9 +20,21 @@ window['toDegrees'] = function(angle) {
 window['toRadians'] = function(angle) {
   return angle * (Math.PI / 180);
 }
+window['normalcamera'] = function(){
+	camera.position.set(0,100,100); 
+    camera.lookAt(new THREE.Vector3());
+}
+window['smallcamera'] = function(){
+	camera.position.set(0,50,50); 
+    camera.lookAt(new THREE.Vector3());
+}
+window['bigcamera'] = function(){
+	camera.position.set(0,200,200); 
+    camera.lookAt(new THREE.Vector3());
+}
 setTimeout(function(){
 scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 75, 500/500, 0.1, 1000 );
+camera = new THREE.PerspectiveCamera( 75, 500/500, 0.1, 1000 );
 raycaster = new THREE.Raycaster();
 mouse = new THREE.Vector2();
 var parameters = {"canvas":document.getElementById("radarcanvas")};
