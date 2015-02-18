@@ -143,6 +143,7 @@ class Vessel:
         self.radarmodule = RadarModule(self,specs['radarhealth'],specs['radarpower'],specs['radarmindamage'],specs['radarminpower'],specs['radarbreakdamage'],specs['radarmaxhealth'],specs['radarmaxpower'],specs['radarranges'])
         self.mapmodule = MapModule(self,specs['maphealth'],specs['mappower'],specs['mapmindamage'],specs['mapminpower'],specs['mapbreakdamage'],specs['mapmaxhealth'],specs['mapmaxpower'])
         self.targetmodule = TargetModule(self,specs['targethealth'],specs['targetpower'],specs['targetmindamage'],specs['targetminpower'],specs['targetbreakdamage'],specs['targetmaxhealth'],specs['targetmaxpower'])
+        self.phasermodule = PhaserModule(self,specs['phaserhealth'],specs['phaserpower'],specs['phasermindamage'],specs['phaserminpower'],specs['phaserbreakdamage'],specs['phasermaxhealth'],specs['phasermaxpower'],specs['phaserdamage'],specs['phasernum'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigator','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
@@ -157,6 +158,9 @@ class Vessel:
         self.radarmodule.update()
         self.mapmodule.update()
         self.targetmodule.update()
+        self.phasermodule.update()
+    def damage(self,damage):
+        self.parentmission.emittoallstations("explosion",damage)
     def action(self):
         self.alertmodule.action()
         self.musicmodule.action()
@@ -170,6 +174,7 @@ class Vessel:
         self.coursemodule.action()
         self.radarmodule.action()
         self.targetmodule.action()
+        self.phasermodule.action()
     def move(self,parentmission):
         self.warpmodule.move(parentmission)
         self.impulsemodule.move(parentmission)
@@ -335,8 +340,10 @@ class Signal:
         self.z = z
     def action(self):
         pass
+    def damage(self,damage):
+        self.strength = 0
     def move(self,parentmission):
-        self.strength -= 0.0000000001
+        self.strength -= 0.00001
         if self.strength <= 0:
             for name, age in parentmission.map.dictionary.items():
                 if age == self:
@@ -719,8 +726,44 @@ class TargetModule:
         yd = obj.y - self.parentmission.y
         zd = obj.z - self.parentmission.z
         return (xd*xd + yd*yd + zd*zd)
+def PhaserModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage,numphasers):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.damage = damage
+        self.phasers = []
+        for i in range(0,numphasers):
+            self.phasers.append(False)
+    def update(self):
+        self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+    def action(self):
+        if self.health < self.mindamage and self.power < self.minpower:
+            for i in range(0,len(phasers)):
+                phasers[i] = False
+    def chargephaser(self,phasernumber):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.phasers[phasernumber] = True
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+            return True
+        else:
+            return False
+    def firephaser(self,phasernumber):
+        if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
+            self.parentmission.parentmission.map.dictionary[self.parentmission.targetmodule.target].damage(self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower))
+            self.phasers[phasernumber] = False
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+            self.parentmission.parentmission.socket.emit("sound","phaser",namespace="/station6")
+            return True
+        else:
+            return False
 newmap = Map()
-vesselspecs = {'x':0,'y':0,'z':0,'eventlist':['Set the alert status to red.'],'inorder':[["pass","pass"]],'mustnot':[["pass","pass"]],'events':[],'musthave':[],'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841,'warphealth':100,'warppower':100,'warpmindamage':5,'warpminpower':5,'warpbreakdamage':3,'warpmaxhealth':100,'warpmaxpower':100,'warpstability':100,'warpmaxstability':100,'warpinstabledamage':50,'warpinstablewarp':9,'warpinstableheat':50,'warpbreakheat':95,'warpmaxheat':100,'warpmaxwarp':9.9,'thrusterhealth':100,'thrusterpower':100,'thrustermindamage':5,'thrusterminpower':5,'thrusterbreakdamage':3,'thrustermaxhealth':100,'thrustermaxpower':100,'impulsehealth':100,'impulsepower':100,'impulsemindamage':5,'impulseminpower':5,'impulsebreakdamage':3,'impulsemaxhealth':100,'impulsemaxpower':100,'impulsespeed':0.1,'impulsebreakheat':80,'impulsemaxheat':100,'warpheathealth':75,'warpheatwarp':7,'impulseheatspeed':2,'impulseheathealth':50,'coursehealth':100,'coursepower':100,'coursemindamage':5,'courseminpower':5,'coursebreakdamage':3,'coursemaxhealth':100,'coursemaxpower':100,'radarhealth':100,'radarpower':100,'radarmindamage':5,'radarminpower':5,'radarbreakdamage':3,'radarmaxhealth':100,'radarmaxpower':100,'radarranges':[1,5,10],'maphealth':100,'mappower':100,'mapmindamage':5,'mapminpower':5,'mapbreakdamage':3,'mapmaxhealth':100,'mapmaxpower':100,'targethealth':100,'targetpower':100,'targetmindamage':5,'targetminpower':5,'targetbreakdamage':3,'targetmaxhealth':100,'targetmaxpower':100}
+vesselspecs = {'x':0,'y':0,'z':0,'eventlist':['Set the alert status to red.'],'inorder':[["pass","pass"]],'mustnot':[["pass","pass"]],'events':[],'musthave':[],'briefing':"hey",'control':"UFP",'alertstatus':0,'alerthealth':100,'alertpower':100,'alertmindamage':5,'alertminpower':5,'alertbreakdamage':3,'alertmaxhealth':100,'alertmaxpower':100,'antennarange':10,'antennastrength':5,'antennahealth':100,'antennapower':100,'antennamindamage':5,'antennaminpower':5,'antennabreakdamage':3,'antennamaxhealth':100,'antennamaxpower':100,'antennareceivelist':[1,80,3000],'communicationshealth':100,'communicationspower':100,'communicationsmindamage':5,'communicationsminpower':5,'communicationsbreakdamage':3,'communicationsmaxhealth':100,'communicationsmaxpower':100,'communicationsaddress':9820216841,'warphealth':100,'warppower':100,'warpmindamage':5,'warpminpower':5,'warpbreakdamage':3,'warpmaxhealth':100,'warpmaxpower':100,'warpstability':100,'warpmaxstability':100,'warpinstabledamage':50,'warpinstablewarp':9,'warpinstableheat':50,'warpbreakheat':95,'warpmaxheat':100,'warpmaxwarp':9.9,'thrusterhealth':100,'thrusterpower':100,'thrustermindamage':5,'thrusterminpower':5,'thrusterbreakdamage':3,'thrustermaxhealth':100,'thrustermaxpower':100,'impulsehealth':100,'impulsepower':100,'impulsemindamage':5,'impulseminpower':5,'impulsebreakdamage':3,'impulsemaxhealth':100,'impulsemaxpower':100,'impulsespeed':0.1,'impulsebreakheat':80,'impulsemaxheat':100,'warpheathealth':75,'warpheatwarp':7,'impulseheatspeed':2,'impulseheathealth':50,'coursehealth':100,'coursepower':100,'coursemindamage':5,'courseminpower':5,'coursebreakdamage':3,'coursemaxhealth':100,'coursemaxpower':100,'radarhealth':100,'radarpower':100,'radarmindamage':5,'radarminpower':5,'radarbreakdamage':3,'radarmaxhealth':100,'radarmaxpower':100,'radarranges':[1,5,10],'maphealth':100,'mappower':100,'mapmindamage':5,'mapminpower':5,'mapbreakdamage':3,'mapmaxhealth':100,'mapmaxpower':100,'targethealth':100,'targetpower':100,'targetmindamage':5,'targetminpower':5,'targetbreakdamage':3,'targetmaxhealth':100,'targetmaxpower':100,'phaserhealth':100,'phaserpower':100,'phasermindamage':5,'phaserminpower':5,'phaserbreakdamage':3,'phasermaxhealth':100,'phasermaxpower':100,'phaserdamage':10,'phasernum':5}
 newid = newmap.Add(Vessel(vesselspecs))
 dictionary = {'status':0, 'name':'It\'s Mine', 'map':newmap, 'id':newid}
 f = open('missions/Trevor.mis','wb')
