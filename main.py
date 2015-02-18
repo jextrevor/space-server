@@ -728,6 +728,16 @@ class TargetModule:
         yd = obj.y - self.parentmission.y
         zd = obj.z - self.parentmission.z
         return (xd*xd + yd*yd + zd*zd)
+def PhaserModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
