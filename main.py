@@ -151,6 +151,7 @@ class Vessel:
         self.antennamodule = AntennaModule(self,specs['antennarange'],specs['antennastrength'],specs['antennahealth'],specs['antennapower'],specs['antennamindamage'],specs['antennaminpower'],specs['antennabreakdamage'],specs['antennamaxhealth'],specs['antennamaxpower'],specs['antennareceivelist'])
         self.radarmodule = RadarModule(self,specs['radarhealth'],specs['radarpower'],specs['radarmindamage'],specs['radarminpower'],specs['radarbreakdamage'],specs['radarmaxhealth'],specs['radarmaxpower'],specs['radarranges'])
         self.mapmodule = MapModule(self,specs['maphealth'],specs['mappower'],specs['mapmindamage'],specs['mapminpower'],specs['mapbreakdamage'],specs['mapmaxhealth'],specs['mapmaxpower'])
+        self.targetmodule = TargetModule(self,specs['targethealth'],specs['targetpower'],specs['targetmindamage'],specs['targetminpower'],specs['targetbreakdamage'],specs['targetmaxhealth'],specs['targetmaxpower'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigator','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
@@ -164,6 +165,7 @@ class Vessel:
         self.impulsemodule.update()
         self.radarmodule.update()
         self.mapmodule.update()
+        self.targetmodule.update()
     def action(self):
         self.alertmodule.action()
         self.musicmodule.action()
@@ -176,6 +178,7 @@ class Vessel:
         self.mapmodule.action()
         self.coursemodule.action()
         self.radarmodule.action()
+        self.targetmodule.action()
     def move(self,parentmission):
         self.warpmodule.move(parentmission)
         self.impulsemodule.move(parentmission)
