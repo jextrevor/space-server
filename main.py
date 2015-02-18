@@ -750,7 +750,7 @@ def PhaserModule:
         for i in range(0,numphasers):
             self.phasers.append(False)
     def update(self):
-        self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+        self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station3")
     def action(self):
         if self.health < self.mindamage and self.power < self.minpower:
             for i in range(0,len(phasers)):
@@ -758,7 +758,7 @@ def PhaserModule:
     def chargephaser(self,phasernumber):
         if self.health >= self.mindamage and self.power >= self.minpower:
             self.phasers[phasernumber] = True
-            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station3")
             return True
         else:
             return False
@@ -766,11 +766,36 @@ def PhaserModule:
         if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
             self.parentmission.parentmission.map.dictionary[self.parentmission.targetmodule.target].damage(self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower))
             self.phasers[phasernumber] = False
-            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station3")
             self.parentmission.parentmission.socket.emit("sound","phaser",namespace="/station6")
             return True
         else:
             return False
+def TorpedoModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage,num):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.damage = damage
+        self.loaded = False
+        self.torpedoes = num
+    def loadtorpedo(self):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.loaded = True
+            self.parentmission.parentmission.socket.emit("loaded",True,namespace="/station3")
+            return True
+        else:
+            return False
+    def update(self):
+        self.parentmission.parentmission.socket.emit("loaded",self.loaded,namespace="/station3")
+        self.parentmission.parentmission.socket.emit("numtorpedoes",self.torpedoes,namespace="/station3")
+    def action(self):
+        pass
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
