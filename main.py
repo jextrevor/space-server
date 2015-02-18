@@ -152,6 +152,7 @@ class Vessel:
         self.radarmodule = RadarModule(self,specs['radarhealth'],specs['radarpower'],specs['radarmindamage'],specs['radarminpower'],specs['radarbreakdamage'],specs['radarmaxhealth'],specs['radarmaxpower'],specs['radarranges'])
         self.mapmodule = MapModule(self,specs['maphealth'],specs['mappower'],specs['mapmindamage'],specs['mapminpower'],specs['mapbreakdamage'],specs['mapmaxhealth'],specs['mapmaxpower'])
         self.targetmodule = TargetModule(self,specs['targethealth'],specs['targetpower'],specs['targetmindamage'],specs['targetminpower'],specs['targetbreakdamage'],specs['targetmaxhealth'],specs['targetmaxpower'])
+        self.phasermodule = PhaserModule(self,specs['phaserhealth'],specs['phaserpower'],specs['phasermindamage'],specs['phaserminpower'],specs['phaserbreakdamage'],specs['phasermaxhealth'],specs['phasermaxpower'],specs['phaserdamage'],specs['phasernum'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigator','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
@@ -166,6 +167,9 @@ class Vessel:
         self.radarmodule.update()
         self.mapmodule.update()
         self.targetmodule.update()
+        self.phasermodule.update()
+    def damage(self,damage):
+        self.parentmission.emittoallstations("explosion",damage)
     def action(self):
         self.alertmodule.action()
         self.musicmodule.action()
@@ -179,6 +183,7 @@ class Vessel:
         self.coursemodule.action()
         self.radarmodule.action()
         self.targetmodule.action()
+        self.phasermodule.action()
     def move(self,parentmission):
         self.warpmodule.move(parentmission)
         self.impulsemodule.move(parentmission)
@@ -344,8 +349,10 @@ class Signal:
         self.z = z
     def action(self):
         pass
+    def damage(self,damage):
+        self.strength = 0
     def move(self,parentmission):
-        self.strength -= 0.0000000001
+        self.strength -= 0.00001
         if self.strength <= 0:
             for name, age in parentmission.map.dictionary.items():
                 if age == self:
@@ -729,7 +736,7 @@ class TargetModule:
         zd = obj.z - self.parentmission.z
         return (xd*xd + yd*yd + zd*zd)
 def PhaserModule:
-    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage):
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage,numphasers):
         self.parentmission = parentmission
         self.health = health
         self.power = power
@@ -738,6 +745,32 @@ def PhaserModule:
         self.breakdamage = breakdamage
         self.maxhealth = maxhealth
         self.maxpower = maxpower
+        self.damage = damage
+        self.phasers = []
+        for i in range(0,numphasers):
+            self.phasers.append(False)
+    def update(self):
+        self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+    def action(self):
+        if self.health < self.mindamage and self.power < self.minpower:
+            for i in range(0,len(phasers)):
+                phasers[i] = False
+    def chargephaser(self,phasernumber):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.phasers[phasernumber] = True
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+            return True
+        else:
+            return False
+    def firephaser(self,phasernumber):
+        if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
+            self.parentmission.parentmission.map.dictionary[self.parentmission.targetmodule.target].damage(self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower))
+            self.phasers[phasernumber] = False
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station2")
+            self.parentmission.parentmission.socket.emit("sound","phaser",namespace="/station6")
+            return True
+        else:
+            return False
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
