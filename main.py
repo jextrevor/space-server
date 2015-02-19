@@ -153,6 +153,7 @@ class Vessel:
         self.mapmodule = MapModule(self,specs['maphealth'],specs['mappower'],specs['mapmindamage'],specs['mapminpower'],specs['mapbreakdamage'],specs['mapmaxhealth'],specs['mapmaxpower'])
         self.targetmodule = TargetModule(self,specs['targethealth'],specs['targetpower'],specs['targetmindamage'],specs['targetminpower'],specs['targetbreakdamage'],specs['targetmaxhealth'],specs['targetmaxpower'])
         self.phasermodule = PhaserModule(self,specs['phaserhealth'],specs['phaserpower'],specs['phasermindamage'],specs['phaserminpower'],specs['phaserbreakdamage'],specs['phasermaxhealth'],specs['phasermaxpower'],specs['phaserdamage'],specs['phasernum'])
+        self.torpedomodule = TorpedoModule(self,specs['torpedohealth'],specs['torpedopower'],specs['torpedomindamage'],specs['torpedominpower'],specs['torpedobreakdamage'],specs['torpedomaxhealth'],specs['torpedomaxpower'],specs['torpedodamage'],specs['torpedonum'],specs['torpedospeed'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigator','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
@@ -773,7 +774,7 @@ class PhaserModule:
         else:
             return False
 class TorpedoModule:
-    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage,num):
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage,num,speed):
         self.parentmission = parentmission
         self.health = health
         self.power = power
@@ -785,6 +786,7 @@ class TorpedoModule:
         self.damage = damage
         self.loaded = False
         self.torpedoes = num
+        self.speed = speed
     def loadtorpedo(self):
         if self.health >= self.mindamage and self.power >= self.minpower:
             self.loaded = True
@@ -795,12 +797,51 @@ class TorpedoModule:
     def firetorpedo(self):
         if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
             self.loaded = False
+            self.parentmission.parentmission.map.Add(Torpedo(self.parentmission.x,self.parentmission.y,self.parentmission.z, self.parentmission.targetmodule.target, self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower)),self.speed* (self.health/self.maxhealth)*(self.power/self.maxpower)))
             self.parentmission.parentmission.socket.emit("sound","torpedo",namespace="/station6")
+            self.parentmission.parentmission.socket.emit("loaded",self.loaded,namespace="/station3")
+            self.parentmission.parentmission.socket.emit("numtorpedoes",self.torpedoes,namespace="/station3")
     def update(self):
         self.parentmission.parentmission.socket.emit("loaded",self.loaded,namespace="/station3")
         self.parentmission.parentmission.socket.emit("numtorpedoes",self.torpedoes,namespace="/station3")
     def action(self):
         pass
+class Torpedo:
+    def __init__(self,x,y,z,target,damage,speed):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.type = "torpedo"
+        self.target = target
+        self.damage = damage
+        self.speed = speed
+        self.health = 100
+    def action(self):
+        pass
+    def damage(self,damage):
+        self.health = 0
+    def move(self,parentmission):
+        xdistance = self.parentmission.map.dictionary[self.target].x - self.x
+        ydistance = self.parentmission.map.dictionary[self.target].y - self.y
+        zdistance = self.parentmission.map.dictionary[self.target].z - self.z
+        distanc = self.distance(self.parentmission.map.dictionary[self.target])
+        self.x += xdistance / (distanc/self.speed)
+        self.y += xdistance / (distanc/self.speed)
+        self.z += xdistance / (distanc/self.speed)
+        if distanc < 0.00000000000001:
+            self.detonate(parentmission)
+        self.health -= 0.0001
+        if self.health <= 0:
+            for name, age in parentmission.map.dictionary.items():
+                if age == self:
+                    del parentmission.map.dictionary[name]
+    def detonate(self,parentmission):
+        self.parentmission.map.dictionary[self.target].damage(self.damage)
+    def distance(self,obj):
+        xd = obj.x - self.x
+        yd = obj.y - self.y
+        zd = obj.z - self.z
+        return (xd*xd + yd*yd + zd*zd)
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
