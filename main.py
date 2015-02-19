@@ -170,6 +170,7 @@ class Vessel:
         self.phasermodule.update()
     def damage(self,damage):
         self.parentmission.emittoallstations("explosion",damage)
+        self.parentmission.socket.emit("sound","explosion",namespace="/station6")
     def action(self):
         self.alertmodule.action()
         self.musicmodule.action()
@@ -791,6 +792,10 @@ def TorpedoModule:
             return True
         else:
             return False
+    def firetorpedo(self):
+        if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
+            self.loaded = False
+            self.parentmission.parentmission.socket.emit("sound","torpedo",namespace="/station6")
     def update(self):
         self.parentmission.parentmission.socket.emit("loaded",self.loaded,namespace="/station3")
         self.parentmission.parentmission.socket.emit("numtorpedoes",self.torpedoes,namespace="/station3")
