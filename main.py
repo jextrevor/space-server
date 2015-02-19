@@ -736,7 +736,7 @@ class TargetModule:
         yd = obj.y - self.parentmission.y
         zd = obj.z - self.parentmission.z
         return (xd*xd + yd*yd + zd*zd)
-def PhaserModule:
+class PhaserModule:
     def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage,numphasers):
         self.parentmission = parentmission
         self.health = health
@@ -772,7 +772,7 @@ def PhaserModule:
             return True
         else:
             return False
-def TorpedoModule:
+class TorpedoModule:
     def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower,damage,num):
         self.parentmission = parentmission
         self.health = health
