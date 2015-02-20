@@ -61,16 +61,16 @@ var linegeometry = new THREE.Geometry();
     
     var render = function () { requestAnimationFrame( render ); updateObjects(); renderer.render(scene, camera); }; render();
 },2000);
-window['clickObject'] = function(gCanvasElement,e){
+window['clickObject'] = function(gCanvasElement){
 	var x;
 var y;
-if (e.pageX || e.pageY) { 
-  x = e.pageX;
-  y = e.pageY;
+if (event.pageX || event.pageY) { 
+  x = event.pageX;
+  y = event.pageY;
 }
 else { 
-  x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
-  y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
+  x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft; 
+  y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop; 
 } 
 x -= gCanvasElement.offsetLeft;
 y -= gCanvasElement.offsetTop;
