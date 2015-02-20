@@ -30,7 +30,18 @@ html{
 @-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
- 
+@-moz-keyframes inred { from {background-color:#272b30} to {background-color:#FF0000}}
+@-webkit-keyframes inred { from {background-color:#272b30} to {background-color:#FF0000}}
+@keyframes inred { from {background-color:#272b30} to {background-color:#FF0000}}
+@-moz-keyframes outred { from {background-color:#FF0000} to {background-color:#272b30}}
+@-webkit-keyframes outred { from {background-color:#FF0000} to {background-color:#272b30}}
+@keyframes outred { from {background-color:#FF0000} to {background-color:#272b30}}
+
+#redalert{
+	-webkit-animation:inred ease-out 1;
+ -moz-animation:inred ease-out 1;
+ animation:inred ease-out 1;
+}
  .nav-tabs>li>a {
    background: rgba(74,74,74,1);
    background: -moz-linear-gradient(top, rgba(74,74,74,1) 0%, rgba(71,71,71,1) 47%, rgba(46,46,46,1) 100%);
