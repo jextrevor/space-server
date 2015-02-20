@@ -66,8 +66,10 @@ mouse.y = y;
 raycaster.setFromCamera( mouse, camera );
 var intersects = raycaster.intersectObjects( objects );
 if ( intersects.length > 0 ) {
+    console.log("hey");
 if(intersects[0].object.name.startsWith("object")){
 for(var i = 0; i < objects.length; i++){
+  console.log("hey");
 var selectedObject = scene.getObjectByName("object"+objects[i]);
 selectedObject.material.color.setHex(0x0000ff);
 if(intersects[0].object.name == "object"+objects[i]){
@@ -104,7 +106,6 @@ yaw -= toRadians(youryaw);
 x = Math.sin(pitch) * Math.cos(yaw) * distance;
 y = Math.sin(pitch) * Math.sin(yaw) * distance;
 x = Math.cos(pitch) * distance;*/
-console.log("Coords:"+x+","+y+","+z);
 var selectedObject = scene.getObjectByName("object"+objects[i]);
 selectedObject.position.set(x*100,y*100,z*-100)
 }
