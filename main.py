@@ -686,15 +686,19 @@ class RadarModule:
                     self.coords[obj] = [self.parentmission.parentmission.map.dictionary[obj].x,self.parentmission.parentmission.map.dictionary[obj].y,self.parentmission.parentmission.map.dictionary[obj].z]
                     if obj != self.parentmission.parentmission.vessel:
                         self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
+                        self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station3")
                 if self.distance(self.parentmission.parentmission.map.dictionary[obj]) > (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower))*(self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)):
                     self.objects.remove(obj)
                     self.parentmission.parentmission.socket.emit("remove",obj,namespace="/station2")
+                    self.parentmission.parentmission.socket.emit("remove",obj,namespace="/station3")
             for key,value in self.parentmission.parentmission.map.dictionary.items():
                 if self.distance(value) <= (self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower))*(self.ranges[self.range]*(self.health/self.maxhealth)*(self.power/self.maxpower)) and key not in self.objects and key != self.parentmission.parentmission.vessel:
                     self.objects.append(key)
                     self.coords[key] = [value.x,value.y,value.z]
                     self.parentmission.parentmission.socket.emit("add",key,namespace="/station2")
+                    self.parentmission.parentmission.socket.emit("add",key,namespace="/station3")
                     self.parentmission.parentmission.socket.emit("update",{"id":key,"x":value.x,"y":value.y,"z":value.z},namespace="/station2")
+                    self.parentmission.parentmission.socket.emit("update",{"id":key,"x":value.x,"y":value.y,"z":value.z},namespace="/station3")
     def distance(self,obj):
         xd = obj.x - self.parentmission.x
         yd = obj.y - self.parentmission.y
@@ -702,9 +706,12 @@ class RadarModule:
         return (xd*xd + yd*yd + zd*zd)
     def update(self):
         self.parentmission.parentmission.socket.emit("clearradar",0,namespace="/station2")
+        self.parentmission.parentmission.socket.emit("clearradar",0,namespace="/station3")
         for obj in self.objects:
             self.parentmission.parentmission.socket.emit("add",obj,namespace="/station2")
+            self.parentmission.parentmission.socket.emit("add",obj,namespace="/station3")
             self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station2")
+            self.parentmission.parentmission.socket.emit("update",{"id":obj,"x":self.parentmission.parentmission.map.dictionary[obj].x,"y":self.parentmission.parentmission.map.dictionary[obj].y,"z":self.parentmission.parentmission.map.dictionary[obj].z},namespace="/station3")
 class MapModule:
     def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower):
         self.parentmission = parentmission
