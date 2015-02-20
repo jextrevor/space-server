@@ -154,6 +154,7 @@ class Vessel:
         self.targetmodule = TargetModule(self,specs['targethealth'],specs['targetpower'],specs['targetmindamage'],specs['targetminpower'],specs['targetbreakdamage'],specs['targetmaxhealth'],specs['targetmaxpower'])
         self.phasermodule = PhaserModule(self,specs['phaserhealth'],specs['phaserpower'],specs['phasermindamage'],specs['phaserminpower'],specs['phaserbreakdamage'],specs['phasermaxhealth'],specs['phasermaxpower'],specs['phaserdamage'],specs['phasernum'])
         self.torpedomodule = TorpedoModule(self,specs['torpedohealth'],specs['torpedopower'],specs['torpedomindamage'],specs['torpedominpower'],specs['torpedobreakdamage'],specs['torpedomaxhealth'],specs['torpedomaxpower'],specs['torpedodamage'],specs['torpedonum'],specs['torpedospeed'])
+        self.shieldsmodule = ShieldsModule(self,specs['shieldshealth'],specs['shieldspower'],specs['shieldsmindamage'],specs['shieldsminpower'],specs['shieldsbreakdamage'],specs['shieldsmaxhealth'],specs['shieldsmaxpower'])
         self.stations = {1:{'name':'Commander','taken':False},2:{'name':'Navigator','taken':False},3:{'name':'Tactical','taken':False},4:{'name':'Operations','taken':False},5:{'name':'Engineer','taken':False},6:{'name':'Main View Screen','taken':False}}
     def update(self):
         self.alertmodule.update()
@@ -169,9 +170,42 @@ class Vessel:
         self.mapmodule.update()
         self.targetmodule.update()
         self.phasermodule.update()
-    def damage(self,damage):
+        self.torpedomodule.update()
+        self.shieldsmodule.update()
+    def damage(self,damage,target):
         self.parentmission.emittoallstations("explosion",damage)
         self.parentmission.socket.emit("sound","explosion",namespace="/station6")
+        if self.shieldsmodule.raised == True:
+            self.shieldsmodule.health-= damage
+        else:
+            if target == "alert":
+                self.alertmodule.health -= damage
+            elif target == "antenna":
+                self.antennamodule.health -= damage
+            elif target == "thruster":
+                self.thrustermodule.health -= damage
+            elif target == "course":
+                self.coursemodule.health -= damage
+            elif target == "warp":
+                self.warpmodule.health -= damage
+            elif target == "impulse":
+                self.impulsemodule.health -= damage
+            elif target == "radar":
+                self.radarmodule.health -= damage
+            elif target == "map":
+                self.mapmodule.health -= damage
+            elif target == "target":
+                self.targetmodule.health -= damage
+            elif target == "phaser":
+                self.phasermodule.health -= damage
+            elif target == "torpedo":
+                self.torpedomodule.health -= damage
+            elif target == "shields":
+                self.shieldsmodule.health -= damage
+            elif target == "communications":
+                self.communicationsmodule.health -= damage
+            else:
+                self.hullmodule.health -= damage
     def action(self):
         self.alertmodule.action()
         self.musicmodule.action()
@@ -186,6 +220,8 @@ class Vessel:
         self.radarmodule.action()
         self.targetmodule.action()
         self.phasermodule.action()
+        self.torpedomodule.action()
+        self.shieldsmodule.action()
     def move(self,parentmission):
         self.warpmodule.move(parentmission)
         self.impulsemodule.move(parentmission)
@@ -351,7 +387,7 @@ class Signal:
         self.z = z
     def action(self):
         pass
-    def damage(self,damage):
+    def damage(self,damage,target):
         self.strength = 0
     def move(self,parentmission):
         self.strength -= 0.00001
@@ -766,7 +802,7 @@ class PhaserModule:
             return False
     def firephaser(self,phasernumber):
         if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
-            self.parentmission.parentmission.map.dictionary[self.parentmission.targetmodule.target].damage(self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower))
+            self.parentmission.parentmission.map.dictionary[self.parentmission.targetmodule.target].damage(self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower),"")
             self.phasers[phasernumber] = False
             self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station3")
             self.parentmission.parentmission.socket.emit("sound","phaser",namespace="/station6")
@@ -801,6 +837,9 @@ class TorpedoModule:
             self.parentmission.parentmission.socket.emit("sound","torpedo",namespace="/station6")
             self.parentmission.parentmission.socket.emit("loaded",self.loaded,namespace="/station3")
             self.parentmission.parentmission.socket.emit("numtorpedoes",self.torpedoes,namespace="/station3")
+            return True
+        else:
+            return False
     def update(self):
         self.parentmission.parentmission.socket.emit("loaded",self.loaded,namespace="/station3")
         self.parentmission.parentmission.socket.emit("numtorpedoes",self.torpedoes,namespace="/station3")
@@ -818,7 +857,7 @@ class Torpedo:
         self.health = 100
     def action(self):
         pass
-    def damage(self,damage):
+    def damage(self,damage,target):
         self.health = 0
     def move(self,parentmission):
         xdistance = self.parentmission.map.dictionary[self.target].x - self.x
@@ -836,12 +875,38 @@ class Torpedo:
                 if age == self:
                     del parentmission.map.dictionary[name]
     def detonate(self,parentmission):
-        self.parentmission.map.dictionary[self.target].damage(self.damage)
+        self.parentmission.map.dictionary[self.target].damage(self.damage,"")
     def distance(self,obj):
         xd = obj.x - self.x
         yd = obj.y - self.y
         zd = obj.z - self.z
         return (xd*xd + yd*yd + zd*zd)
+class ShieldsModule:
+    def __init__(self,parentmission,health,power,mindamage,minpower,breakdamage,maxhealth,maxpower):
+        self.parentmission = parentmission
+        self.health = health
+        self.power = power
+        self.mindamage = mindamage
+        self.minpower = minpower
+        self.breakdamage = breakdamage
+        self.maxhealth = maxhealth
+        self.maxpower = maxpower
+        self.raised = False
+    def setstatus(self,status):
+        if self.health >= self.mindamage and self.power >= self.minpower:
+            self.raised = status
+            self.parentmission.parentmission.socket.emit("shields",self.raised,namespace="/station3")
+            return True
+        else:
+            return False
+    def action(self):
+        if self.health < self.mindamage and self.power < self.minpower:
+            self.raised = False
+            self.parentmission.parentmission.socket.emit("shields",self.raised,namespace="/station3")
+    def move(self,parentmission):
+        pass
+    def update(self):
+        self.parentmission.parentmission.socket.emit("shields",self.raised,namespace="/station3")
 def allstationconnect(key):
     print "Station "+str(key)+" connected"
     mission.join(key)
