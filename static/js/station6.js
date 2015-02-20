@@ -1,4 +1,5 @@
 theme = "0";
+var alertinterval;
 currentsong = 1;
 exposition = false;
 soundeffects = false;
@@ -29,17 +30,17 @@ if(playnewsong){
 	newsong();
 }
 });
-/*stationsocket.on("alert",function(json){
+stationsocket.on("alert",function(json){
 	if(json == "0"){
-		document.body.style.backgroundColor = "";
+		document.body.className = "";
 	}
 	if(json == "1"){
-		document.body.style.backgroundColor = "yellow";
+		document.body.className ="redalert";
 	}
 	if(json == "2"){
-		document.body.style.backgroundColor = "red";
+		document.body.className ="redalert";
 	}
-});*/
+});
 stationsocket.on("startwarp", function(json){
 data = new Audio("static/media/warp.mp3");
 data.play();
