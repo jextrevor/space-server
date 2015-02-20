@@ -748,7 +748,7 @@ class TargetModule:
         self.targettype = ""
     def target(self,totarget,targettype):
         if self.health >= self.mindamage and self.power >= self.minpower:
-            if targettype == "visual":
+            if self.targettype == "visual":
                 if distance(self.parentmission.parentmission.map.dictionary[totarget]) <= 1:
                     self.target = totarget
                     self.targettype = targettype
@@ -756,7 +756,7 @@ class TargetModule:
                     return True
                 else:
                     return False
-            elif targettype == "radar":
+            elif self.targettype == "radar":
                 if self.parentmission.radarmodule.health >= self.parentmission.radarmodule.mindamage and self.parentmission.radarmodule.power >= self.parentmission.radarmodule.minpower:
                     self.target = totarget
                     self.targettype = targettype
@@ -767,11 +767,11 @@ class TargetModule:
     def update(self):
         self.parentmission.parentmission.socket.emit("target",{"target":self.target,"type":self.targettype},namespace="/station3")
     def action(self):
-        if targettype == "visual":
+        if self.targettype == "visual":
             if distance(self.parentmission.parentmission.map.dictionary[totarget]) > 1:
                 self.target = -1
                 self.parentmission.parentmission.socket.emit("target",{"target":-1,"type":targettype},namespace="/station3")
-        if targettype == "radar":
+        if self.targettype == "radar":
             if self.parentmission.radarmodule.health < self.parentmission.radarmodule.mindamage or self.parentmission.radarmodule.power < self.parentmission.radarmodule.minpower:
                 self.target = -1
                 self.parentmission.parentmission.socket.emit("target",{"target":-1,"type":targettype},namespace="/station3")
