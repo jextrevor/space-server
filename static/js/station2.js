@@ -76,13 +76,15 @@ x -= gCanvasElement.offsetLeft;
 y -= gCanvasElement.offsetTop;
 mouse.x = x;
 mouse.y = y;
+console.log("hi");
 raycaster.setFromCamera( mouse, camera );
-
+console.log("hi2");
     var intersects = raycaster.intersectObjects( objects ); 
-
+console.log("hi3");
     if ( intersects.length > 0 ) {
 
         if(intersects[0].object.name.startsWith("object")){
+        	console.log("hi4");
         	for(var i = 0; i < objects.length; i++){
         		var selectedObject = scene.getObjectByName("object"+objects[i]);
         		selectedObject.material.color.setHex(0x0000ff);
@@ -95,6 +97,7 @@ raycaster.setFromCamera( mouse, camera );
         }
 
     }
+    console.log("hi5");
 }
 window['updateObjects'] = function(){
 	for(var i = 0; i < objects.length; i++){
@@ -122,7 +125,6 @@ window['updateObjects'] = function(){
 		x = Math.sin(pitch) * Math.cos(yaw) * distance;
 		y = Math.sin(pitch) * Math.sin(yaw) * distance;
 		x = Math.cos(pitch) * distance;*/
-		console.log("Coords:"+x+","+y+","+z);
 		var selectedObject = scene.getObjectByName("object"+objects[i]);
 		selectedObject.position.set(x*100,y*100,z*-100)
 	}
