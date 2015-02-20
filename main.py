@@ -238,6 +238,7 @@ class Vessel:
         self.z += zchange
         if magnitude > 0:
             self.parentmission.socket.emit("coords",{"x":self.x,"y":self.y,"z":self.z},namespace="/station2")
+            self.parentmission.socket.emit("coords",{"x":self.x,"y":self.y,"z":self.z},namespace="/station3")
 class AlertModule:
     def __init__(self, parentmission, alertstatus, health, power, mindamage, minpower, breakdamage, maxhealth, maxpower):
         self.parentmission = parentmission
