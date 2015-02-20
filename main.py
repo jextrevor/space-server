@@ -811,7 +811,7 @@ class PhaserModule:
         if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
             self.parentmission.parentmission.map.dictionary[self.parentmission.targetmodule.target].damage(self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower),"")
             self.phasers[phasernumber] = False
-            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station3")
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":self.phasers},namespace="/station3")
             self.parentmission.parentmission.socket.emit("sound","phaser",namespace="/station6")
             return True
         else:
