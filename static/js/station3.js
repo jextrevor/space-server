@@ -109,6 +109,9 @@ var selectedObject = scene.getObjectByName("object"+objects[i]);
 selectedObject.position.set(x*100,y*100,z*-100)
 }
 }
+window['setshields'] = function(boolean){
+stationsocket.emit("setshields",boolean);
+}
 window['showtarget'] = function(){
 document.getElementById("targetpage").style.display = "initial";
 document.getElementById("weaponpage").style.display = "none";
@@ -133,6 +136,16 @@ document.getElementById("targettab").className = "";
 document.getElementById("weapontab").className = "";
 document.getElementById("securitytab").className = "active";
 }
+stationsocket.on("shields",function(json){
+  if(json == true){
+document.getElementById("shieldupbutton").style['box-shadow'] = "0 0 30px #0000FF";
+document.getElementById("shielddownbutton").style['box-shadow'] = "none";
+}
+else{
+  document.getElementById("shieldupbutton").style['box-shadow'] = "none";
+document.getElementById("shielddownbutton").style['box-shadow'] = "0 0 30px #FF0000";
+}
+});
 stationsocket.on("add",function(json){
 objects.push(json);
 var geometry = new THREE.SphereGeometry( 2.5, 32, 32 );
