@@ -79,7 +79,7 @@ mouse.y = y;
 console.log("hi");
 raycaster.setFromCamera( mouse, camera );
 console.log("hi2");
-    var intersects = raycaster.intersectObjects( objects ); 
+    var intersects = raycaster.intersectObjects(); 
 console.log("hi3");
     if ( intersects.length > 0 ) {
 
