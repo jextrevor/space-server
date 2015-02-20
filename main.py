@@ -1026,6 +1026,11 @@ def stationdisconnect():
 @socketio.on('connect', namespace="/station3")
 def stationconnect():
     allstationconnect(3)
+@socketio.on('setshields', namespace="/station3")
+def setshields(json):
+    responding = mission.GetVessel().shieldsmodule.setstatus(json)
+    if responding == False:
+        emit("message", "not responding", namespace="/station3")
 @socketio.on('disconnect', namespace="/station3")
 def stationdisconnect():
     allstationdisconnect(3)
