@@ -795,7 +795,7 @@ class PhaserModule:
         for i in range(0,numphasers):
             self.phasers.append(False)
     def update(self):
-        self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station3")
+        self.parentmission.parentmission.socket.emit("phasers",{"charged":self.phasers},namespace="/station3")
     def action(self):
         if self.health < self.mindamage and self.power < self.minpower:
             for i in range(0,len(phasers)):
@@ -803,7 +803,7 @@ class PhaserModule:
     def chargephaser(self,phasernumber):
         if self.health >= self.mindamage and self.power >= self.minpower:
             self.phasers[phasernumber] = True
-            self.parentmission.parentmission.socket.emit("phasers",{"charged":phasers},namespace="/station3")
+            self.parentmission.parentmission.socket.emit("phasers",{"charged":self.phasers},namespace="/station3")
             return True
         else:
             return False
