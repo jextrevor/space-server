@@ -824,7 +824,7 @@ class TorpedoModule:
     def firetorpedo(self):
         if self.health >= self.mindamage and self.power >= self.minpower and self.parentmission.targetmodule.target != -1:
             self.loaded = False
-            self.parentmission.parentmission.map.Add(Torpedo(self.parentmission.x,self.parentmission.y,self.parentmission.z, self.parentmission.targetmodule.target, self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower),self.speed* (self.health/self.maxhealth)*(self.power/self.maxpower))
+            self.parentmission.parentmission.map.Add(Torpedo(self.parentmission.x,self.parentmission.y,self.parentmission.z, self.parentmission.targetmodule.target, self.damage * (self.health/self.maxhealth)*(self.power/self.maxpower),self.speed* (self.health/self.maxhealth)*(self.power/self.maxpower)))
             self.parentmission.parentmission.socket.emit("sound","torpedo",namespace="/station6")
             self.parentmission.parentmission.socket.emit("loaded",self.loaded,namespace="/station3")
             self.parentmission.parentmission.socket.emit("numtorpedoes",self.torpedoes,namespace="/station3")
